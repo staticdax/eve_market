@@ -1,4 +1,4 @@
 /venv/
 /.idea/
 /__pycache__/
-/get_sum_result.txt
+/get_sum_result*.txt
