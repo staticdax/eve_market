@@ -28,7 +28,7 @@ URL: https://esi.evepc.163.com/
   - 下单时间
   - 地点（空间站id）
   - min_volumn(?)
-  - 单据ID
+  - 订单ID
   - 价格
   - 成交范围
   - 星系ID
@@ -41,13 +41,31 @@ URL: https://esi.evepc.163.com/
  - 参数：星域ID，页数
 
 - GET /markets/groups/
- - 所有商品的ID
+ - 所有商品的分类ID
  - 参数：无
 
 - GET /markets/groups/{market_group_id}/
- - 商品信息
- - 参数：商品ID
+ - 商品分类ID信息
+ - 参数：商品分类ID
 
 - GET /markets/groups/{market_group_id}/
  - 返回所有商品的平均价格和调整价格
  - 参数：无
+
+
+### 辅助查询
+
+#### typeID, typeName互查
+
+<https://www.fuzzwork.co.uk/api/typeid.php?typeid=47115>
+<https://www.fuzzwork.co.uk/api/typeid.php?typename=Tritanium>
+```
+$ curl https://www.fuzzwork.co.uk/api/typeid.php\?typeid\=34
+{"typeID": 34,"typeName": "Tritanium"}
+
+$ curl https://www.fuzzwork.co.uk/api/typeid.php\?typename\=Tritanium
+{"typeID": 34,"typeName": "Tritanium"}
+
+curl https://www.fuzzwork.co.uk/api/typeid.php\?typeid\=47115
+{"typeID": 47115,"typeName": "Standup Gravitational Transportation Field Oscillator Blueprint"}
+```
