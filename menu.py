@@ -2,9 +2,10 @@
 # -*- encoding:UTF-8 -*-
 
 
-import direct_market_functions
+import direct_market_api_functions
 import data_helper
 import time
+import input_handle_functions
 
 
 class Menu:
@@ -16,26 +17,29 @@ class MainMenu(Menu):
     def __init__(self, title):
         Menu.__init__(self, title)
         self.menua = MenuA("常用功能")
+        self.menub = MenuB("固定资料查询")
 
     def run(self):
         while True:
+            print("\033c")
             print(self.title)
             print('''
 ---------------------
 a) 常用功能
-b) option b
+b) 固定资料查询
 x) exit
 ---------------------''')
             choice = input("select: ")
             if choice == 'a':
                 self.menua.run()
             elif choice == 'b':
-                pass
+                self.menub.run()
             elif choice == 'x':
                 break
             else:
-                print('Invalid input.')
+                input('Invalid input.')
                 continue
+            input('press any key to continue...')
 
 
 class MenuA(Menu):
@@ -44,48 +48,63 @@ class MenuA(Menu):
 
     def run(self):
         while True:
+            print("\033c")
             print(self.title)
             print('''
 ---------------------
 h) 获取指定商品在星域市场历史数据
-b) option 2
+t) 获取星域市场中指定商品订单
+n) 获取星域市场此时订单最多的商品
+m) 获取星域市场n天内订单最多的商品
 x) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'h':
-                input_get_region_market_history()
+                input_handle_functions.input_get_region_market_history()
+            elif choice == 't':
+                input_handle_functions.input_get_type_order_of_region()
+            elif choice == 'n':
+                input_handle_functions.input_get_most_order_of_region()
+            elif choice == 'x':
+                break
+            else:
+                input('Invalid input.')
+                continue
+            input('press any key to continue...')
+
+
+class MenuB(Menu):
+    def __init__(self, title):
+        Menu.__init__(self, title)
+
+    def run(self):
+        while True:
+            print("\033c")
+            print(self.title)
+            print('''
+---------------------
+r) 查询星域名称
+b) option 2
+x) back
+---------------------''')
+            choice = input("select: ")
+            if choice == 'r':
+                input_handle_functions.input_get_region_name()
             elif choice == 'b':
                 print("option 2")
             elif choice == 'x':
                 break
             else:
-                print('Invalid input.')
+                input('Invalid input.')
                 continue
+            input('press any key to continue...')
 
-
-def input_get_region_market_history():
-    region_id = input("星域编号(default: 10000002): ")
-    region_id = 10000002 if region_id == '' else region_id
-    print(region_id)
-    type_id = input("商品编号(default: 34): ")
-    type_id = 34 if type_id == '' else type_id
-    print(type_id)
-    if data_helper.validate_region_id(region_id) and data_helper.validate_type_id(type_id):
-        print("星域编号: {} 商品编号: {}".format(region_id, type_id))
-        r = direct_market_functions.get_region_market_history(region_id, type_id)
-        for i in r:
-            print(i)
-    else:
-        print('invalid input')
-        print("validate_region_id {}".format(data_helper.validate_region_id(region_id)))
-        print("validate_type_id {}".format(data_helper.validate_type_id(type_id)))
-    # direct_market_functions.get_region_market_history()
 
 
 def main():
-    menu = MainMenu("This is main menu.")
+    menu = MainMenu("Welcome to EVE Online Swagger tool.")
     menu.run()
-
+    data_helper.rewrite_type_id_json_file()
 
 if __name__ == '__main__':
     main()

@@ -53,6 +53,13 @@ URL: https://esi.evepc.163.com/
  - 参数：无
 
 
+### 历史数据记录
+
+路径: data/markets/{region_id}/history/{type_id}.json
+
+
+
+
 ### 辅助查询
 
 #### typeID, typeName互查
