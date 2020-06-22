@@ -4,10 +4,7 @@ import custom_functions
 import direct_market_api_functions
 import threading
 import queue
-import _thread
-import json
 import data_helper
-
 
 thread_num = 20
 threadLock = threading.Lock()
@@ -24,7 +21,7 @@ class MyGetHistoryTask:
 
 
 class MyGetHistoryThread(threading.Thread):
-    def __init__(self, my_get_history_task: MyGetHistoryTask, num = 0):
+    def __init__(self, my_get_history_task: MyGetHistoryTask, num=0):
         threading.Thread.__init__(self)
         self.task = my_get_history_task
         self.num = num
@@ -44,7 +41,6 @@ def get_item_market_history_of_region_single_thread(task: MyGetHistoryTask):
                 custom_functions.get_item_market_history_of_region_from_api_or_local(task.region_id, type_id)
             except Exception as e:
                 print(e)
-                # print('{} {} {}'.format(e.__traceback__.tb_frame, e.__traceback__.tb_lasti, e.__traceback__.tb_lineno))
                 threadLock.acquire()
                 task.q.put(type_id)
                 threadLock.release()
@@ -61,6 +57,7 @@ class MyGetTask:
     self.q 任务队列，存放任务变量的列表的元素初始化时将依次入队
     self.result_dict 结果字典变量，元素形式自定义
     """
+
     def __init__(self, task_list: list, region_id=10000001):
         self.region_id = region_id
         self.lock = threading.Lock()
@@ -73,7 +70,7 @@ class MyGetTask:
 
 
 class MyGetCurrentOrderInRegionThread(threading.Thread):
-    def __init__(self, my_get_task: MyGetTask, num = 0):
+    def __init__(self, my_get_task: MyGetTask, num=0):
         threading.Thread.__init__(self)
         self.task = my_get_task
         self.num = num
@@ -103,10 +100,9 @@ def get_current_order_of_type_in_region_single(task: MyGetTask):
 
 
 class MyGetOrdersOfAllRegionsThread(threading.Thread):
-    def __init__(self, task: MyGetTask, name='0'):
+    def __init__(self, task: MyGetTask):
         threading.Thread.__init__(self)
         self.task = task
-        self.name = str(name)
 
     def run(self) -> None:
         get_orders_of_all_regions_from_api_single(self.task)
@@ -127,11 +123,12 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                     if x_pages == 1:
                         task.result_dict[region_id] = r_response.json()
                     elif 1 < x_pages < 20:
-                        task.result_dict[region_id] = direct_market_api_functions.get_orders_of_region_single_thread(region_id)
+                        task.result_dict[region_id] = direct_market_api_functions.get_orders_of_region_single_thread(
+                            region_id)
                     elif x_pages >= 20:
                         # page_list = [i for i in range(1,x_pages+1)]
                         # print(x_pages)
-                        page_list = range(1,x_pages+1)
+                        page_list = range(1, x_pages + 1)
                         get_page_sub_task = MyGetTask(page_list, region_id=region_id)
                         t_num = 10
                         threads = [GetOrdersOfRegionOnPageThread(get_page_sub_task) for i in range(t_num)]
@@ -142,7 +139,8 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                         # print(get_page_sub_task.result_dict[region_id])
                         task.result_dict[region_id] = get_page_sub_task.result_dict[region_id]
                     else:
-                        raise Exception("something wrong with request {} orders error: {}".format(region_id, r_response))
+                        raise Exception(
+                            "something wrong with request {} orders error: {}".format(region_id, r_response))
                 else:
                     raise Exception("request {} orders error: {}".format(region_id, r_response.status_code))
             except Exception as e:
@@ -167,7 +165,8 @@ class GetOrdersOfRegionOnPageThread(threading.Thread):
                 print("\rregion: {} Task queue size: {}".format(self.task.region_id, self.task.q.qsize()), end='')
                 self.task.lock.release()
                 try:
-                    r = direct_market_api_functions.get_orders_of_region_one_page_raw_response(self.task.region_id, page=page)
+                    r = direct_market_api_functions.get_orders_of_region_one_page_raw_response(self.task.region_id,
+                                                                                               page=page)
                     if r.status_code == 200:
                         if self.task.region_id not in self.task.result_dict.keys():
                             self.task.result_dict[self.task.region_id] = list()
@@ -198,7 +197,7 @@ class MyGetSumTask:
 
 
 class MyGetVolumeSumThread(threading.Thread):
-    def __init__(self, my_get_sum_task: MyGetSumTask, num = 0):
+    def __init__(self, my_get_sum_task: MyGetSumTask, num=0):
         threading.Thread.__init__(self)
         self.task = my_get_sum_task
         self.num = num
@@ -215,7 +214,8 @@ def get_last_n_day_volume_single_thread(task: MyGetSumTask):
             print("\rTask queue size: {}".format(task.q.qsize()), end="")
             threadLock.release()
             try:
-                task.result_dict[type_id] = custom_functions.get_last_n_day_volume(task.region_id, type_id, task.duration)
+                task.result_dict[type_id] = custom_functions.get_last_n_day_volume(task.region_id, type_id,
+                                                                                   task.duration)
             except Exception as e:
                 print(e)
                 threadLock.acquire()
@@ -244,7 +244,8 @@ def get_last_n_day_orders_single_thread(task: MyGetSumTask):
             print("\rTask queue size: {}".format(task.q.qsize()), end="")
             threadLock.release()
             try:
-                task.result_dict[type_id] = custom_functions.get_last_n_day_orders(task.region_id, type_id, task.duration)
+                task.result_dict[type_id] = custom_functions.get_last_n_day_orders(task.region_id, type_id,
+                                                                                   task.duration)
             except Exception as e:
                 print(e)
                 threadLock.acquire()
@@ -254,9 +255,22 @@ def get_last_n_day_orders_single_thread(task: MyGetSumTask):
             threadLock.release()
 
 
+class WriteJsonIntoFileThread(threading.Thread):
+    def __init__(self, file_path: str, file_name: str, content: list):
+        threading.Thread.__init__(self)
+        self.file_path = file_path
+        self.file_name = file_name
+        self.content = content
+
+    def run(self) -> None:
+        data_helper.write_json_into_file(self.file_path, self.file_name, self.content)
+
+
 def write_json_into_file_multi_thread(file_path: str, file_name: str, content: list):
     try:
-        _thread.start_new_thread(data_helper.write_json_into_file, (file_path, file_name, content, ))
+        # _thread.start_new_thread(data_helper.write_json_into_file, (file_path, file_name, content, ))
+        t = WriteJsonIntoFileThread(file_path, file_name, content)
+        t.start()
     except Exception as e:
         print(e)
         print('Exception: write_json_into_file_multi_thread')

@@ -5,16 +5,19 @@ import requests
 import data_helper
 
 # VERSION = 'dev'
+ROOT_URL = 'https://esi.evepc.163.com/'
+# ROOT_URL = 'https://esi.evetech.net/'
 VERSION = 'latest'
-API_URL = 'https://esi.evepc.163.com/' + VERSION
+API_URL = ROOT_URL + VERSION
 MARKET_URL = 'markets'
-DATA_SOURCE = 'datasource=serenity'
+DATA_SOURCE = 'serenity'
+# DATA_SOURCE = 'tranquility'
 
 
 class RequestParamDefault:
     def __init__(self):
         self.params = dict()
-        self.params['datasource'] = 'serenity'
+        self.params['datasource'] = DATA_SOURCE
 
 
 def get_orders_of_region_one_page_raw_response(region_id: int, order_type='all', page=1, type_id=-1) -> requests.Response:

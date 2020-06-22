@@ -4,6 +4,8 @@
 import data_helper
 import custom_functions
 import direct_market_api_functions
+import output_handle_functions
+import test_functions
 
 
 def input_get_region_market_history():
@@ -58,7 +60,7 @@ def input_get_most_order_of_region():
     thread_num = input("线程数: (default: 20)")
     thread_num = 20 if thread_num == '' else int(thread_num)
     if data_helper.validate_region_id(region_id):
-        r = custom_functions.get_active_order_in_region_multi(region_id, thread_num)
+        r = custom_functions.get_active_order_in_region_multi_todo(region_id, thread_num)
         top_n = len(r) if len(r) < top_n else top_n
         for i in range(top_n):
             s, b = 0, 0
@@ -73,5 +75,43 @@ def input_get_most_order_of_region():
         print('invalid input')
 
 
+def interstellar_logistic(region_id:int ,all_regions=False):
+    if all_regions:
+        need_update = str(input("是否更新全部星域订单?否则加载缓存或存档(Y/N)")).lower()
+        if need_update == 'y' or need_update == 'yes':
+            print("正在更新数据...")
+            custom_functions.renew_region_markets_orders_dict_from_api_multi()
+            custom_functions.renew_all_orders_by_typeid_dict()
+            custom_functions.renew_all_profitable_orders_dict()
+            print("数据更新完毕。")
+        elif need_update == 't':
+            data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
+        else:
+            print("不更新，正在载入...")
+            # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
+            if len(data_helper.all_profitable_orders_dict) == 0:
+                custom_functions.renew_all_orders_by_typeid_dict()
+                custom_functions.renew_all_profitable_orders_dict()
+    elif not all_regions:
+        # 不用更新全部region的数据
+        pass
+    try:
+        min_profit = input("设置最低利润: (default: 10,000,000)")
+        min_profit = 10000000 if min_profit == '' else int(min_profit)
+        ll = ['profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', 'profit_rate', 'rating']
+        sorted_by = input("设置排序依据: (可选'profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', "
+                          "'profit_rate', 'rating', default: rating)")
+        sorted_by = 'rating' if sorted_by not in ll else str(sorted_by)
+        if all_regions:
+            data_helper.tmp_list = custom_functions.get_profitable_orders_sorted_dict(
+                data_helper.all_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=True)
+            output_handle_functions.interact_logistic_profitable_orders_dict(data_helper.tmp_list)
+        else:
+            pass
+    except Exception as e:
+        print(e)
+        print("Exception: interstellar_logistic")
+
+
 if __name__ == '__main__':
-    input_get_most_order_of_region()
+    interstellar_logistic(0, True)

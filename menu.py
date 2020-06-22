@@ -16,46 +16,46 @@ class Menu:
 class MainMenu(Menu):
     def __init__(self, title):
         Menu.__init__(self, title)
-        self.menua = MenuA("常用功能")
-        self.menub = MenuB("固定资料查询")
+        self.menu_a = MenuA("常用功能")
+        self.menu_b = MenuB("资料查询")
 
     def run(self):
         while True:
-            print("\033c")
             print(self.title)
-            print('''
----------------------
+            print(
+                '''---------------------
 a) 常用功能
-b) 固定资料查询
+b) 资料查询
 x) exit
 ---------------------''')
             choice = input("select: ")
             if choice == 'a':
-                self.menua.run()
+                self.menu_a.run()
             elif choice == 'b':
-                self.menub.run()
+                self.menu_b.run()
             elif choice == 'x':
                 break
             else:
                 input('Invalid input.')
                 continue
-            input('press any key to continue...')
+            # input('press any key to continue...')
 
 
 class MenuA(Menu):
     def __init__(self, title):
         Menu.__init__(self, title)
+        self.menu_interstellar = MenuInterstellarLogistic("欢迎来到 星际物流 Inc.")
 
     def run(self):
         while True:
-            print("\033c")
             print(self.title)
-            print('''
----------------------
+            print(
+                '''---------------------
 h) 获取指定商品在星域市场历史数据
-t) 获取星域市场中指定商品订单
-n) 获取星域市场此时订单最多的商品
 m) 获取星域市场n天内订单最多的商品
+n) 获取星域市场此时订单最多的商品(todo:重写)
+t) 获取星域市场中指定商品订单
+l) 星际物流模式
 x) back
 ---------------------''')
             choice = input("select: ")
@@ -64,13 +64,16 @@ x) back
             elif choice == 't':
                 input_handle_functions.input_get_type_order_of_region()
             elif choice == 'n':
-                input_handle_functions.input_get_most_order_of_region()
+                print("(todo:重写)")
+                # input_handle_functions.input_get_most_order_of_region()
+            elif choice == 'l':
+                self.menu_interstellar.run()
             elif choice == 'x':
                 break
             else:
                 input('Invalid input.')
                 continue
-            input('press any key to continue...')
+            # input('press enter to continue...')
 
 
 class MenuB(Menu):
@@ -79,10 +82,9 @@ class MenuB(Menu):
 
     def run(self):
         while True:
-            print("\033c")
             print(self.title)
-            print('''
----------------------
+            print(
+                '''---------------------
 r) 查询星域名称
 b) option 2
 x) back
@@ -97,14 +99,40 @@ x) back
             else:
                 input('Invalid input.')
                 continue
-            input('press any key to continue...')
+            # input('press enter to continue...')
 
+
+class MenuInterstellarLogistic(Menu):
+    def __init__(self, title):
+        Menu.__init__(self, title)
+
+    def run(self):
+        while True:
+            print(self.title)
+            print(
+                '''---------------------
+s) 星域内范围
+r) 全星域范围
+x) back
+---------------------''')
+            choice = input("select: ")
+            if choice == 's':
+                print("WIP:...")
+            elif choice == 'r':
+                input_handle_functions.interstellar_logistic(0, all_regions=True)
+            elif choice == 'x':
+                break
+            else:
+                input('Invalid input.Press enter to continue...')
+                continue
+            # input('press enter to continue...')
 
 
 def main():
     menu = MainMenu("Welcome to EVE Online Swagger tool.")
     menu.run()
     data_helper.rewrite_type_id_json_file()
+
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,4 @@
-## EVE-晨曦服务器数据API
+## EVE Swagger Interface 数据API
 
 URL: https://esi.evepc.163.com/
 
@@ -27,7 +27,7 @@ URL: https://esi.evepc.163.com/
   - 是否买单
   - 下单时间
   - 地点（空间站id）
-  - min_volumn(?)
+  - 最小成交量
   - 订单ID
   - 价格
   - 成交范围
@@ -51,6 +51,28 @@ URL: https://esi.evepc.163.com/
 - GET /markets/groups/{market_group_id}/
  - 返回所有商品的平均价格和调整价格
  - 参数：无
+
+
+### 数据形式
+
+- data_helper.region_markets_orders_dict 
+`{regoin_id_1: [{order_1}, {order_2}...], region_id_2: [{}, {}, ...], ...}`
+
+- data_helper.all_orders_by_typeid_dict
+`{type_id_1: [{order_1}, {order_2}, ...], type_id_2: [{}, {},...], ...}`
+
+- data_helper.all_profitable_orders_dict
+`{type_id_1:{'type_name': info, 'profit': info, ..., 'buy': [{order}, ...], 'sell': [{order}, ...]}, type_id_2: {...}, ...}`
+ - 经过sorted()得到的列表在转换为all_profitable_orders_sorted_dict字典  
+ `{type_id_1: {'type_name': info, 'profit': info, ..., 'buy': [{order}, ...], 'sell': [{order}, ...]}, type_id_2: {...}, ...}`
+
+- 中间结果
+ - profitable_bns_orders_dict 
+ `{type_id_1: {'buy':[{order_1}, {order_2}, ...],'sell':[{}, {}, ...]}, type_id_2: {...}, ...}`  
+ 'buy'列表是买家订单列表，价格按降序排列  
+ 'sell'列表是卖家订单列表，价格按升序排列  
+ 
+ - 
 
 
 ### 历史数据记录
