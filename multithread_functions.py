@@ -103,6 +103,7 @@ class MyGetOrdersOfAllRegionsThread(threading.Thread):
     def __init__(self, task: MyGetTask):
         threading.Thread.__init__(self)
         self.task = task
+        self.setDaemon(True)
 
     def run(self) -> None:
         get_orders_of_all_regions_from_api_single(self.task)
@@ -131,13 +132,14 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                         page_list = range(1, x_pages + 1)
                         get_page_sub_task = MyGetTask(page_list, region_id=region_id)
                         t_num = 10
-                        threads = [GetOrdersOfRegionOnPageThread(get_page_sub_task) for i in range(t_num)]
+                        threads = [GetOrdersOfRegionOnePageThread(get_page_sub_task) for i in range(t_num)]
                         for t in threads:
                             t.start()
                         for t in threads:
                             t.join()
                         # print(get_page_sub_task.result_dict[region_id])
                         task.result_dict[region_id] = get_page_sub_task.result_dict[region_id]
+                        # del threads
                     else:
                         raise Exception(
                             "something wrong with request {} orders error: {}".format(region_id, r_response))
@@ -145,17 +147,20 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                     raise Exception("request {} orders error: {}".format(region_id, r_response.status_code))
             except Exception as e:
                 print(e)
-                task.lock.acquire()
-                task.q.put(region_id)
-                task.lock.release()
+                with task.lock:
+                    task.q.put(region_id)
+                # task.lock.acquire()
+                # task.q.put(region_id)
+                # task.lock.release()
         else:
             task.lock.release()
 
 
-class GetOrdersOfRegionOnPageThread(threading.Thread):
+class GetOrdersOfRegionOnePageThread(threading.Thread):
     def __init__(self, task: MyGetTask):
         threading.Thread.__init__(self)
         self.task = task
+        self.setDaemon(True)
 
     def run(self) -> None:
         while not self.task.q.empty():

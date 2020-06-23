@@ -5,6 +5,7 @@ import json
 import os
 import requests
 import queue
+from memory_profiler import profile
 
 FUZZWORK_URL = 'https://www.fuzzwork.co.uk/api/typeid.php'
 

@@ -6,6 +6,7 @@ import direct_market_api_functions
 import data_helper
 import time
 import input_handle_functions
+from memory_profiler import profile
 
 
 class Menu:
@@ -26,14 +27,14 @@ class MainMenu(Menu):
                 '''---------------------
 a) 常用功能
 b) 资料查询
-x) exit
+q) exit
 ---------------------''')
             choice = input("select: ")
             if choice == 'a':
                 self.menu_a.run()
             elif choice == 'b':
                 self.menu_b.run()
-            elif choice == 'x':
+            elif choice == 'q':
                 break
             else:
                 input('Invalid input.')
@@ -56,7 +57,7 @@ m) 获取星域市场n天内订单最多的商品
 n) 获取星域市场此时订单最多的商品(todo:重写)
 t) 获取星域市场中指定商品订单
 l) 星际物流模式
-x) back
+q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'h':
@@ -68,7 +69,7 @@ x) back
                 # input_handle_functions.input_get_most_order_of_region()
             elif choice == 'l':
                 self.menu_interstellar.run()
-            elif choice == 'x':
+            elif choice == 'q':
                 break
             else:
                 input('Invalid input.')
@@ -87,14 +88,14 @@ class MenuB(Menu):
                 '''---------------------
 r) 查询星域名称
 b) option 2
-x) back
+q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'r':
                 input_handle_functions.input_get_region_name()
             elif choice == 'b':
                 print("option 2")
-            elif choice == 'x':
+            elif choice == 'q':
                 break
             else:
                 input('Invalid input.')
@@ -111,16 +112,16 @@ class MenuInterstellarLogistic(Menu):
             print(self.title)
             print(
                 '''---------------------
-s) 星域内范围
 r) 全星域范围
-x) back
+s) 星域内范围
+q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 's':
                 print("WIP:...")
             elif choice == 'r':
                 input_handle_functions.interstellar_logistic(0, all_regions=True)
-            elif choice == 'x':
+            elif choice == 'q':
                 break
             else:
                 input('Invalid input.Press enter to continue...')
@@ -128,6 +129,7 @@ x) back
             # input('press enter to continue...')
 
 
+#@profile()
 def main():
     menu = MainMenu("Welcome to EVE Online Swagger tool.")
     menu.run()

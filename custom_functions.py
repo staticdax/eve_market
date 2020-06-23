@@ -6,6 +6,7 @@ import direct_market_api_functions
 import data_helper
 import multithread_functions
 from datetime import datetime, timedelta
+from memory_profiler import profile
 
 
 def get_item_market_history_of_region_from_api_or_local(region_id: int, type_id: int) -> list:
@@ -93,6 +94,7 @@ def get_last_n_day_orders(region_id: int, type_id: int, n: int) -> int:
     return order_sum
 
 
+#@profile
 def renew_region_markets_orders_dict_from_api_multi(thread_num=20):
     """
     获得全部星域市场的订单，更新data_helper.market_orders_dict
@@ -102,6 +104,8 @@ def renew_region_markets_orders_dict_from_api_multi(thread_num=20):
     """
     region_list = data_helper.region_id_dict.keys()
     # region_list = [10000002, 10000011]
+    if len(data_helper.region_markets_orders_dict) > 0:
+        data_helper.region_markets_orders_dict = dict()
     get_all_orders_task = multithread_functions.MyGetTask(region_list)
     threads = [multithread_functions.MyGetOrdersOfAllRegionsThread(get_all_orders_task) for i in range(thread_num)]
     for t in threads:
@@ -113,10 +117,13 @@ def renew_region_markets_orders_dict_from_api_multi(thread_num=20):
         if len(order_list) > 0:
             data_helper.region_markets_orders_dict[region_id] = order_list
 
+    # del threads
+
     # renew_all_orders_by_typeid_dict()
     # renew_all_profitable_orders_dict()
 
 
+#@profile
 def renew_all_orders_by_typeid_dict():
     """
     更新data_help.all_orders_by_typeid_dict，
@@ -128,6 +135,9 @@ def renew_all_orders_by_typeid_dict():
     if len(data_helper.region_markets_orders_dict) == 0:
         print("data_helper.market_order_dict is not ready, loading saved files.")
         data_helper.region_markets_orders_dict = data_helper.load_market_order_dict_from_json()
+
+    data_helper.all_orders_by_typeid_dict = dict()
+
     for orders in data_helper.region_markets_orders_dict.values():
         for order in orders:
             if order['type_id'] not in data_helper.all_orders_by_typeid_dict.keys():
@@ -204,6 +214,16 @@ def get_profitable_order_in_region_todo(region_id: int, tax_rate=0.05, thread_nu
     #         if len(bo_list) > 0 and len(so_list) > 0 and bo_list[0]['price'] * (1 - tax_rate) > so_list[0]['price']:
     #             r[type_id] = {'buy': bo_list, 'sell': so_list}
     # return r
+
+
+# def get_single_type_sorted_bns_orders_dict(orders_dict: dict):
+#     """
+#
+#     :param orders_dict: 单个种类的bns_orders_dict {'buy':[{order_1},{order_2},...],'sell':[{order_1}, ...]}
+#     :return: 买单按价格降序排列，卖单价格按升序排列
+#     """
+#     orders_dict['buy'].sort(key=lambda x: x['price'], reverse=True)
+#     orders_dict['sell'].sort(key=lambda x: x['price'], reverse=False)
 
 
 def get_profitable_order(order_dict: dict, tax_rate=0.05):
@@ -320,6 +340,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
     # return pure_profit_sorted_list
 
 
+#@profile
 def renew_all_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # interstellar_logistic
     """
     更新data_helper.all_profitable_orders_dict
@@ -334,6 +355,7 @@ def renew_all_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # interstell
                                                                                  tax_rate, min_profit)
 
 
+#@profile
 def get_profitable_orders_sorted_dict(profitable_orders_dict: dict, min_profit=0, sorted_by='rating', reverse=True):
     """
     对profitable_orders_dict进行排序，过滤，

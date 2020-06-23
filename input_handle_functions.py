@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding:UTF-8 -*-
+from memory_profiler import profile
 
 import data_helper
 import custom_functions
@@ -42,10 +43,28 @@ def input_get_type_order_of_region():
     region_id = 10000002 if region_id == '' else int(region_id)
     type_id = input("商品编号(default: 34): ")
     type_id = 34 if type_id == '' else int(type_id)
+    type_name = data_helper.get_type_name(type_id)
     if data_helper.validate_region_id(region_id):
-        r = direct_market_api_functions.get_orders_of_region_single_thread(region_id, type_id=type_id)
-        for i in r:
-            print(i)
+        # r = direct_market_api_functions.get_orders_of_region_single_thread(region_id, type_id=type_id)
+        # TODO: 单独更新这类订单，对比order_id，不存在的append，存在的对比volume_remain不一样的就更新
+        r = dict()  # r是bns_orders_dict {'buy':[{order_1}, {order_2}, ...],'sell':[{}, {}, ...]}
+        r['buy'] = list()
+        r['sell'] = list()
+        if len(data_helper.region_markets_orders_dict) == 0:
+            r['buy'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='buy',
+                                                                                      type_id=type_id)
+            r['sell'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='sell',
+                                                                                     type_id=type_id)
+        else:
+            for order in data_helper.region_markets_orders_dict[region_id]:
+                if order['is_buy_order']:
+                    r['buy'].append(order)
+                else:
+                    r['sell'].append(order)
+        r['buy'].sort(key=lambda x: x['price'], reverse=True)  # 买单按价格降序排列，卖单价格按升序排列
+        r['sell'].sort(key=lambda x: x['price'], reverse=False)
+        print("{} {}".format(type_id, type_name))
+        output_handle_functions.interact_orders_dicts_list(r['sell'], r['buy'])
     else:
         print('invalid input')
 
@@ -75,16 +94,17 @@ def input_get_most_order_of_region():
         print('invalid input')
 
 
+#@profile()
 def interstellar_logistic(region_id:int ,all_regions=False):
     if all_regions:
-        need_update = str(input("是否更新全部星域订单?否则加载缓存或存档(Y/N)")).lower()
-        if need_update == 'y' or need_update == 'yes':
+        need_update = str(input("是否更新全部星域订单?(Y/N)")).lower()
+        if need_update == 'y' or need_update == 'yes' or need_update == '':
             print("正在更新数据...")
             custom_functions.renew_region_markets_orders_dict_from_api_multi()
             custom_functions.renew_all_orders_by_typeid_dict()
             custom_functions.renew_all_profitable_orders_dict()
             print("数据更新完毕。")
-        elif need_update == 't':
+        elif need_update == 'test':
             data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
         else:
             print("不更新，正在载入...")
