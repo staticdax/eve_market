@@ -6,7 +6,7 @@ import data_helper
 import custom_functions
 import direct_market_api_functions
 import output_handle_functions
-import test_functions
+# import test_functions
 
 
 def input_get_region_market_history():
@@ -105,7 +105,8 @@ def interstellar_logistic(region_id:int ,all_regions=False):
             custom_functions.renew_all_profitable_orders_dict()
             print("数据更新完毕。")
         elif need_update == 'test':
-            data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
+            # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
+            pass
         else:
             print("不更新，正在载入...")
             # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
@@ -118,10 +119,17 @@ def interstellar_logistic(region_id:int ,all_regions=False):
     try:
         min_profit = input("设置最低利润: (default: 10,000,000)")
         min_profit = 10000000 if min_profit == '' else int(min_profit)
+        choise_dict = {'p':'profit', 'b':'buy_order_num', 's':'sell_order_num', 'v':'volume', 'c':'cost',
+                       'pr': 'profit_rate', 'r': 'rating'}
         ll = ['profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', 'profit_rate', 'rating']
-        sorted_by = input("设置排序依据: (可选'profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', "
-                          "'profit_rate', 'rating', default: rating)")
-        sorted_by = 'rating' if sorted_by not in ll else str(sorted_by)
+        sorted_by = input("设置排序依据: (可选[p]rofit, [b]uy_order_num, [s]ell_order_num, [v]olume, [c]ost, "
+                          "[pr]ofit_rate, [r]ating, default: rating)")
+        if sorted_by not in choise_dict:
+            sorted_by = 'rating' if sorted_by not in ll else str(sorted_by)
+        else:
+            # TODO: 选择b, s, c, v 选项时应该在显示前将其正序排序
+            sorted_by = choise_dict[sorted_by]
+
         if all_regions:
             data_helper.tmp_list = custom_functions.get_profitable_orders_sorted_dict(
                 data_helper.all_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=True)

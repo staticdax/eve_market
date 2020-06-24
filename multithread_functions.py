@@ -142,9 +142,9 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                         # del threads
                     else:
                         raise Exception(
-                            "something wrong with request {} orders error: {}".format(region_id, r_response))
+                            "something wrong with request {} orders error, response: {}".format(region_id, r_response))
                 else:
-                    raise Exception("request {} orders error: {}".format(region_id, r_response.status_code))
+                    raise Exception("request {} orders error, status_code: {}".format(region_id, r_response.status_code))
             except Exception as e:
                 print(e)
                 with task.lock:
