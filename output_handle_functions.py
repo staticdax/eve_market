@@ -57,7 +57,7 @@ def interact_logistic_profitable_orders_dict(profitable_orders_dict: dict):
                 if int(il_choice_1) in p_dict:
                     tmp_dict = p_dict[int(il_choice_1)]
                     while True:
-                        print("{} {} volume: {}\tprofit_rate: {:.2f}\tprofit: {:,.2f}\tcost: {:,.2f}\tbuyer: {}\t"
+                        print("{} {} volume: {:,}\tprofit_rate: {:.2f}\tprofit: {:,.2f}\tcost: {:,.2f}\tbuyer: {}\t"
                               "seller: {}"
                               .format(int(il_choice_1), tmp_dict['type_name'], tmp_dict['volume'],
                                       tmp_dict['profit_rate'], tmp_dict['profit'], tmp_dict['cost'],
@@ -77,7 +77,7 @@ q) 返回
                                           tmp_dict['profit_rate'], tmp_dict['cost'], len(tmp_dict['buy']),
                                           len(tmp_dict['sell'])))
                             interact_orders_dicts_list(tmp_dict['sell'], tmp_dict['buy'])
-                            break
+                            # break
                             # print("WIP: interact_orders_dicts_list(tmp_dict['sell'],tmp_dict['buy'])")
                         elif il_choice_2 == 'b':
                             interact_orders_dicts_list(tmp_dict['buy'])

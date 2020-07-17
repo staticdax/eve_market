@@ -14,6 +14,36 @@ class Menu:
         self.title = title
 
 
+class ServerMenu(Menu):
+    def __init__(self, title):
+        Menu.__init__(self, title)
+        self.mainMenu = MainMenu("Welcome to EVE Online Swagger tool.")
+
+    def run(self):
+        while True:
+            print(self.title)
+            print(
+                '''选择服务器
+---------------------
+s) 晨曦
+t) Tranquility
+q) exit
+---------------------''')
+            choice = input("select: ")
+            if choice == 's' or choice == 't':
+                if choice == 's':
+                    direct_market_api_functions.set_serenity_server()
+                    data_helper.set_serenity_server()
+                elif choice == 't':
+                    direct_market_api_functions.set_tranquility_server()
+                    data_helper.set_tranquility_server()
+                self.mainMenu.run()
+            elif choice == 'q':
+                break
+            else:
+                input('Invalid input.')
+                continue
+
 class MainMenu(Menu):
     def __init__(self, title):
         Menu.__init__(self, title)
@@ -27,7 +57,7 @@ class MainMenu(Menu):
                 '''---------------------
 a) 常用功能
 b) 资料查询
-q) exit
+q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'a':
@@ -131,9 +161,9 @@ q) back
 
 #@profile()
 def main():
-    menu = MainMenu("Welcome to EVE Online Swagger tool.")
+    menu = ServerMenu("Welcome to EVE Online Swagger tool.")
     menu.run()
-    data_helper.rewrite_type_id_json_file()
+    # data_helper.rewrite_type_id_json_file()
 
 
 if __name__ == '__main__':

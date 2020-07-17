@@ -4,14 +4,35 @@
 import requests
 import data_helper
 
-# VERSION = 'dev'
+
+DATA_SOURCE = 'serenity'
+# DATA_SOURCE = 'tranquility'
 ROOT_URL = 'https://esi.evepc.163.com/'
 # ROOT_URL = 'https://esi.evetech.net/'
 VERSION = 'latest'
+# VERSION = 'dev'
 API_URL = ROOT_URL + VERSION
 MARKET_URL = 'markets'
-DATA_SOURCE = 'serenity'
-# DATA_SOURCE = 'tranquility'
+
+TIMEOUT = 20
+
+
+def set_serenity_server():
+    global DATA_SOURCE
+    global ROOT_URL
+    global API_URL
+    DATA_SOURCE = 'serenity'
+    ROOT_URL = 'https://esi.evepc.163.com/'
+    API_URL = ROOT_URL + VERSION
+
+
+def set_tranquility_server():
+    global DATA_SOURCE
+    global ROOT_URL
+    global API_URL
+    DATA_SOURCE = 'tranquility'
+    ROOT_URL = 'https://esi.evetech.net/'
+    API_URL = ROOT_URL + VERSION
 
 
 class RequestParamDefault:
@@ -36,7 +57,7 @@ def get_orders_of_region_one_page_raw_response(region_id: int, order_type='all',
     p.params['type_id'] = '' if type_id == -1 else type_id
 
     request_url = "{api_url}/markets/{regionid}/orders/".format(api_url=API_URL, regionid=region_id)
-    r = requests.get(request_url, p.params)
+    r = requests.get(request_url, p.params, timeout=TIMEOUT)
 
     return r
 
@@ -60,7 +81,7 @@ def get_orders_of_region_single_thread(region_id: int, order_type='all', page=1,
     p.params['type_id'] = '' if type_id == -1 else type_id
 
     request_url = "{api_url}/markets/{regionid}/orders/".format(api_url=API_URL, regionid=region_id)
-    r = requests.get(request_url, p.params)
+    r = requests.get(request_url, p.params, timeout=TIMEOUT)
 
     if r.status_code == 200:
         market_orders_list = r.json()
@@ -68,7 +89,7 @@ def get_orders_of_region_single_thread(region_id: int, order_type='all', page=1,
         if int(r.headers['X-Pages']) > 1:
             for i in range(page + 1, int(r.headers['X-Pages']) + 1):
                 p.params['page'] = i
-                r = requests.get(request_url, p.params)
+                r = requests.get(request_url, p.params, timeout=TIMEOUT)
                 if r.status_code == 200:
                     market_orders_list += r.json()
     else:
@@ -90,7 +111,7 @@ def get_item_market_history_of_region(region_id: int, type_id: int) -> list:
     p = RequestParamDefault()
     p.params['type_id'] = type_id
     request_url = "{api_url}/markets/{regionid}/history/".format(api_url=API_URL, regionid=region_id)
-    r = requests.get(request_url, p.params)
+    r = requests.get(request_url, p.params, timeout=TIMEOUT)
 
     if r.status_code == 200:
         data_helper.update_market_history_dict(region_id, type_id, r.json())
@@ -120,7 +141,7 @@ def get_type_ids_have_active_order_in_region(region_id: int) -> list:
     p = RequestParamDefault()
     p.params['page'] = 1
     request_url = "{api_url}/markets/{regionid}/types/".format(api_url=API_URL, regionid=region_id)
-    r = requests.get(request_url, p.params)
+    r = requests.get(request_url, p.params, timeout=TIMEOUT)
 
     if r.status_code == 200:
         type_id_list = r.json()
@@ -128,7 +149,7 @@ def get_type_ids_have_active_order_in_region(region_id: int) -> list:
         if int(r.headers['X-Pages']) > 1:
             for i in range(2, int(r.headers['X-Pages']) + 1):
                 p.params['page'] = i
-                r = requests.get(request_url, p.params)
+                r = requests.get(request_url, p.params, timeout=TIMEOUT)
                 if r.status_code == 200:
                     type_id_list += r.json()
     else:

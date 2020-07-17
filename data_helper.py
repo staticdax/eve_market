@@ -8,6 +8,40 @@ import queue
 from memory_profiler import profile
 
 FUZZWORK_URL = 'https://www.fuzzwork.co.uk/api/typeid.php'
+region_id_filename = 'data/region_id.json'
+constellation_id_filename = 'data/constellation_id.json'
+system_id_filename = 'data/system_id.json'
+location_id_filename = 'data/location_id.json'
+type_id_filename = 'data/type_id.json'
+
+
+def set_serenity_server():
+    global region_id_filename
+    global constellation_id_filename
+    global system_id_filename
+    global location_id_filename
+    global type_id_filename
+    global region_id_filename
+    constellation_id_filename = 'data/constellation_id.json'
+    system_id_filename = 'data/system_id.json'
+    location_id_filename = 'data/location_id.json'
+    type_id_filename = 'data/type_id.json'
+    delay_functions()
+
+
+def set_tranquility_server():
+    global region_id_filename
+    global constellation_id_filename
+    global system_id_filename
+    global location_id_filename
+    global type_id_filename
+    global region_id_filename
+    region_id_filename = 'data/region_id_tq.json'
+    constellation_id_filename = 'data/constellation_id_tq.json'
+    system_id_filename = 'data/system_id_tq.json'
+    location_id_filename = 'data/location_id_tq.json'
+    type_id_filename = 'data/type_id_tq.json'
+    delay_functions()
 
 
 market_history_dict = dict()
@@ -36,7 +70,7 @@ def load_region_id():
 
     :return:
     """
-    with open('data/region_id.json', 'r', encoding='utf-8') as f:
+    with open(region_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
     for _ in j:
         region_id_dict[_['region_id']] = _['region']
@@ -48,7 +82,7 @@ def load_constellation_id():
 
     :return:
     """
-    with open('data/constellation_id.json', 'r', encoding='utf-8') as f:
+    with open(constellation_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
     for _ in j:
         constellation_id_dict[_['constellation_id']] = _['constellation']
@@ -72,7 +106,7 @@ def load_system_id():
 
     :return:
     """
-    with open('data/system_id.json', 'r', encoding='utf-8') as f:
+    with open(system_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
     for _ in j:
         system_id_dict[_['system_id']] = _['system']
@@ -96,7 +130,7 @@ def load_location_id():
 
     :return:
     """
-    with open('data/location_id.json', 'r', encoding='utf-8') as f:
+    with open(location_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
     for _ in j:
         location_id_dict[_['location_id']] = _['location']
@@ -120,7 +154,7 @@ def load_type_id():
 
     :return:
     """
-    with open('data/type_id.json', 'r', encoding='utf-8') as f:
+    with open(type_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
     for k, v in j.items():
         type_id_dict[int(k)] = v
@@ -130,7 +164,7 @@ def get_type_name(type_id: int):
     if validate_type_id(type_id):
         return type_id_dict[type_id]
     else:
-        print("Todo: try to request FUZZWORK")
+        print("Todo: need to request FUZZWORK({})".format(type_id))
         return "unknown item"
     # try:
     #     return type_id_dict[type_id]
@@ -253,7 +287,7 @@ def get_unknown_type_id_info_n_update_dict(type_id: int):
 
 def rewrite_type_id_json_file():
     if len(type_id_dict) > 1:
-        with open('data/type_id.json', 'w', encoding='utf-8') as f:
+        with open(type_id_filename, 'w', encoding='utf-8') as f:
             json.dump(type_id_dict, f)
 
 
@@ -319,15 +353,16 @@ def init_region_order_dict():
         region['order'] = dict()
 
 
-load_region_id()
-load_system_id()
-load_constellation_id()
-load_location_id()
-load_system_constellation()
-load_constellation_region()
-load_location_system()
-load_type_id()
-load_market_history_dict_from_json()
+def delay_functions():
+    load_region_id()
+    load_system_id()
+    load_constellation_id()
+    load_location_id()
+    load_system_constellation()
+    load_constellation_region()
+    load_location_system()
+    load_type_id()
+    load_market_history_dict_from_json()
 
 # system_id_dict = load_system_id()
 # constellation_id_dict = load_constellation_id()
