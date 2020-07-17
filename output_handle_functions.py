@@ -24,7 +24,7 @@ def interact_logistic_profitable_orders_dict(profitable_orders_dict: dict):
     if dict_len == 0 \
             or not isinstance(list(p_dict.values())[0], dict) \
             or 'rating' not in list(p_dict.values())[0].keys():
-        print("Something wrong in orders_dict {}. Return".format(profitable_orders_dict))
+        print("Something wrong with orders_dict {}. Return".format(profitable_orders_dict))
         return
 
     p_list = list(p_dict.items())  # [(type_id,{info}), (type_id2, {info}), ...]
@@ -164,7 +164,7 @@ def interact_orders_dicts_list(order_dicts_list: list, order_dicts_list_2=None):
 
     for dct in order_dicts_list:
         if not isinstance(dct, dict):
-            print("Something wrong writh order_dicts_list. Return.")
+            print("Something wrong with order_dicts_list. Return.")
             return
 
     # o_list = order_dicts_list

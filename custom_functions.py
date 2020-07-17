@@ -95,15 +95,16 @@ def get_last_n_day_orders(region_id: int, type_id: int, n: int) -> int:
 
 
 #@profile
-def renew_region_markets_orders_dict_from_api_multi(thread_num=20):
+def renew_region_markets_orders_dict_from_api_multi(thread_num=10):
     """
     获得全部星域市场的订单，更新data_helper.market_orders_dict
 
     :param thread_num: 线程数
     :return: 无返回值，更新data_helper.region_markets_orders_dict {regoin_id_1:[{order_1},...], region_id_2:[{},...], ...}
     """
+    data_helper.region_markets_orders_dict = dict()
     region_list = data_helper.region_id_dict.keys()
-    # region_list = [10000002, 10000011]
+    # region_list = [10000001, 10000011]
     if len(data_helper.region_markets_orders_dict) > 0:
         data_helper.region_markets_orders_dict = dict()
     get_all_orders_task = multithread_functions.MyGetTask(region_list)

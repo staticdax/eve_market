@@ -132,6 +132,7 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                         page_list = range(1, x_pages + 1)
                         get_page_sub_task = MyGetTask(page_list, region_id=region_id)
                         t_num = 10
+                        # t_num = 1
                         threads = [GetOrdersOfRegionOnePageThread(get_page_sub_task) for i in range(t_num)]
                         for t in threads:
                             t.start()
@@ -174,6 +175,7 @@ class GetOrdersOfRegionOnePageThread(threading.Thread):
                         if self.task.region_id not in self.task.result_dict.keys():
                             self.task.result_dict[self.task.region_id] = list()
                         self.task.result_dict[self.task.region_id] += r.json()
+                        # del r
                     else:
                         raise Exception("request {} orders error: {} page: {}".format(self.task.region_id, r, page))
                 except Exception as e:
