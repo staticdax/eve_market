@@ -9,9 +9,7 @@ TODO:
 - 运用GC机制
 - 星域内物流功能
 
-### 市场数据
-
-#### 不需账号授权
+### 市场数据（不需账号授权）
 
 - GET /markets/{region_id}/history/
   - 商品历史价格
@@ -57,6 +55,13 @@ TODO:
   - 返回所有商品的平均价格和调整价格
   - 参数：无
 
+### 物品数据
+
+- GET /universe/types/{type_id}/
+  - 返回type_id对应物品的所有信息
+  - 参数：
+    - language：zh/en-us
+    - type_id
 
 ### 数据形式
 

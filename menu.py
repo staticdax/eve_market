@@ -1,12 +1,8 @@
-#!/usr/bin/enb python3
-# -*- encoding:UTF-8 -*-
+#!/usr/bin/env python3
 
-
-import direct_market_api_functions
 import data_helper
-import time
 import input_handle_functions
-from memory_profiler import profile
+import direct_market_api_functions
 
 
 class Menu:
@@ -143,14 +139,15 @@ class MenuInterstellarLogistic(Menu):
             print(
                 '''---------------------
 r) 全星域范围
-s) 星域内范围
+s) 帝国区星域范围
 q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 's':
-                print("WIP:...")
+                # print("WIP:...")
+                input_handle_functions.interstellar_logistic(0, regions='Empire regions')
             elif choice == 'r':
-                input_handle_functions.interstellar_logistic(0, all_regions=True)
+                input_handle_functions.interstellar_logistic(0, regions='All')
             elif choice == 'q':
                 break
             else:
@@ -159,7 +156,6 @@ q) back
             # input('press enter to continue...')
 
 
-#@profile()
 def main():
     menu = ServerMenu("Welcome to EVE Online Swagger tool.")
     menu.run()

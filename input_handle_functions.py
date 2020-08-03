@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-# -*- encoding:UTF-8 -*-
-from memory_profiler import profile
 
 import data_helper
 import custom_functions
 import direct_market_api_functions
 import output_handle_functions
-# import test_functions
 
 
 def input_get_region_market_history():
@@ -54,7 +51,7 @@ def input_get_type_order_of_region():
             r['buy'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='buy',
                                                                                       type_id=type_id)
             r['sell'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='sell',
-                                                                                     type_id=type_id)
+                                                                                       type_id=type_id)
         else:
             for order in data_helper.region_markets_orders_dict[region_id]:
                 if order['is_buy_order']:
@@ -70,6 +67,9 @@ def input_get_type_order_of_region():
 
 
 def input_get_most_order_of_region():
+    print("[WIP]")
+    return
+
     region_id = input("星域编号(10000001-10000069, 11000001-11000033, default: 10000002): ")
     region_id = 10000002 if region_id == '' else int(region_id)
     # time_n = input("时间范围(天): (default: 7)")
@@ -94,52 +94,63 @@ def input_get_most_order_of_region():
         print('invalid input')
 
 
-#@profile()
-def interstellar_logistic(region_id:int ,all_regions=False):
-    if all_regions:
+def interstellar_logistic(region_id: int, regions='All'):
+    if regions == 'All':
         need_update = str(input("是否更新全部星域订单?(Y/N)")).lower()
         if need_update == 'y' or need_update == 'yes' or need_update == '':
             print("正在更新数据...")
-            custom_functions.renew_region_markets_orders_dict_from_api_multi()
+            custom_functions.renew_region_markets_orders_dict_multi()
             custom_functions.renew_all_orders_by_typeid_dict()
-            custom_functions.renew_all_profitable_orders_dict()
+            custom_functions.renew_detailed_profitable_orders_dict()
             print("数据更新完毕。")
         elif need_update == 'test':
-            # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
-            pass
+            data_helper.all_profitable_orders_dict = data_helper.fast_load_detailed_profitable_orders_dict()
         else:
             print("不更新，正在载入...")
             # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
-            if len(data_helper.all_profitable_orders_dict) == 0:
+            if len(data_helper.detailed_profitable_orders_dict) == 0:
                 custom_functions.renew_all_orders_by_typeid_dict()
-                custom_functions.renew_all_profitable_orders_dict()
-    elif not all_regions:
-        # 不用更新全部region的数据
-        pass
+                custom_functions.renew_detailed_profitable_orders_dict()
+    elif regions == 'Empire regions':
+        need_update = str(input("是否更新帝国区星域订单?(Y/N)")).lower()
+        if need_update == 'y' or need_update == 'yes' or need_update == '':
+            print("正在更新数据...")
+            custom_functions.renew_region_markets_orders_dict_multi(region='Empire regions')
+            custom_functions.renew_all_orders_by_typeid_dict()
+            custom_functions.renew_detailed_profitable_orders_dict()
+            print("数据更新完毕。")
+        elif need_update == 'test':
+            data_helper.all_profitable_orders_dict = data_helper.fast_load_detailed_profitable_orders_dict()
+        else:
+            print("不更新，正在载入...")
+            # data_helper.all_profitable_orders_dict = test_functions.fast_load_profitable_order_dict()
+            print("len(data_helper.all_profitable_orders_dict): {}".format(len(data_helper.detailed_profitable_orders_dict)))
+            if len(data_helper.detailed_profitable_orders_dict) == 0:
+                custom_functions.renew_all_orders_by_typeid_dict()
+                custom_functions.renew_detailed_profitable_orders_dict()
     try:
         min_profit = input("设置最低利润: (default: 10,000,000)")
         min_profit = 10000000 if min_profit == '' else int(min_profit)
-        choise_dict = {'p':'profit', 'b':'buy_order_num', 's':'sell_order_num', 'v':'volume', 'c':'cost',
+        choice_dict = {'p': 'profit', 'b': 'buy_order_num', 's': 'sell_order_num', 'q': 'volume', 'c': 'cost',
                        'pr': 'profit_rate', 'r': 'rating'}
+        # 订单的数据结构中表示数量的volume在这里显示为quantity，实际上变量名依然为volume
         ll = ['profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', 'profit_rate', 'rating']
-        sorted_by = input("设置排序依据: (可选[p]rofit, [b]uy_order_num, [s]ell_order_num, [v]olume, [c]ost, "
+        sorted_by = input("设置排序依据: (可选[p]rofit, [b]uy_order_num, [s]ell_order_num, [q]uantity, [c]ost, "
                           "[pr]ofit_rate, [r]ating, default: rating)")
-        if sorted_by not in choise_dict:
+        if sorted_by not in choice_dict:
+            sorted_by = 'volume' if sorted_by == 'quantity' else str(sorted_by) # 显示上的quantity转换为实际的变量名volume
             sorted_by = 'rating' if sorted_by not in ll else str(sorted_by)
         else:
-            # TODO: 选择b, s, c, v 选项时应该在显示前将其正序排序
-            sorted_by = choise_dict[sorted_by]
+            sorted_by = choice_dict[sorted_by]
 
-        if all_regions:
-            data_helper.tmp_list = custom_functions.get_profitable_orders_sorted_dict(
-                data_helper.all_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=True)
-            output_handle_functions.interact_logistic_profitable_orders_dict(data_helper.tmp_list)
+        # 选择b, s, c, q 选项时应该在显示前将其正序排序
+        if sorted_by in ['b', 's', 'c', 'q', 'buy_order_num', 'sell_order_num', 'cost', 'volume']:
+            data_helper.tmp_list = custom_functions.get_sorted_detailed_profitable_orders_dict(
+                data_helper.detailed_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=False)
         else:
-            pass
+            data_helper.tmp_list = custom_functions.get_sorted_detailed_profitable_orders_dict(
+                data_helper.detailed_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=True)
+        output_handle_functions.interact_logistic_profitable_orders_dict(data_helper.tmp_list)
     except Exception as e:
         print(e)
         print("Exception: interstellar_logistic")
-
-
-if __name__ == '__main__':
-    interstellar_logistic(0, True)

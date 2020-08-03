@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
-# -*- encoding:UTF-8 -*-
 
 import json
+import csv
 import os
 import requests
 import queue
+import pickle
 from memory_profiler import profile
 
 FUZZWORK_URL = 'https://www.fuzzwork.co.uk/api/typeid.php'
+TIMEOUT = 20
 region_id_filename = 'data/region_id.json'
 constellation_id_filename = 'data/constellation_id.json'
 system_id_filename = 'data/system_id.json'
 location_id_filename = 'data/location_id.json'
 type_id_filename = 'data/type_id.json'
+typeid_volume_filename = 'data/typeid_volume.json'
+typeid_packaged_volume_filename = 'data/typeid_packaged_volume.json'
+mapSolarSystemJumps_csv_filename = 'data/mapSolarSystemJumps.csv'
+mapSolarSystems_csv_filename = 'data/mapSolarSystems.csv'
+route_cache_filename = 'data/route_cache'
 
 
 def set_serenity_server():
@@ -21,7 +28,7 @@ def set_serenity_server():
     global system_id_filename
     global location_id_filename
     global type_id_filename
-    global region_id_filename
+    region_id_filename = 'data/region_id.json'
     constellation_id_filename = 'data/constellation_id.json'
     system_id_filename = 'data/system_id.json'
     location_id_filename = 'data/location_id.json'
@@ -35,7 +42,6 @@ def set_tranquility_server():
     global system_id_filename
     global location_id_filename
     global type_id_filename
-    global region_id_filename
     region_id_filename = 'data/region_id_tq.json'
     constellation_id_filename = 'data/constellation_id_tq.json'
     system_id_filename = 'data/system_id_tq.json'
@@ -47,7 +53,7 @@ def set_tranquility_server():
 market_history_dict = dict()
 region_markets_orders_dict = dict()
 all_orders_by_typeid_dict = dict()
-all_profitable_orders_dict = dict()
+detailed_profitable_orders_dict = dict()
 region_profitable_orders_dict = dict()
 tmp_dict = dict()
 tmp_list = list()
@@ -59,9 +65,18 @@ location_id_dict = dict()
 constellation_region_dict = dict()
 system_constellation_dict = dict()
 location_system_dict = dict()
+typeid_packaged_volume_dict = dict()
+mapSolarSystems_dict = dict()
+route_cache_dict = dict()
+
+mapSolarSystemJumps_list = list()
 
 type_id_dict = dict()
 unknown_type_id_queue = queue.Queue()
+
+empire_region_id_list = [10000054, 10000036, 10000043, 10000067, 10000052, 10000065, 10000020, 10000038, 10000016,
+                         10000033, 10000002, 10000064, 10000037, 10000048, 10000032, 10000044, 10000068, 10000042,
+                         10000030, 10000028, 10000001, 10000049]
 
 
 def load_region_id():
@@ -158,6 +173,51 @@ def load_type_id():
         j = json.load(f)
     for k, v in j.items():
         type_id_dict[int(k)] = v
+
+
+def load_typeid_volume():
+    """
+    加载物品typeid和物品体积volume，更新typeid_volume_dict(typeid为键，volume为值)
+
+    :return:
+    """
+    with open(typeid_volume_filename, 'r', encoding='utf-8') as f:
+        j = json.load(f)
+    for k, v in j.items():
+        typeid_packaged_volume_dict[int(k)] = v
+    with open(typeid_packaged_volume_filename, 'r', encoding='utf-8') as f:
+        j = json.load(f)
+    for k, v in j.items():
+        typeid_packaged_volume_dict[int(k)] = v
+
+
+def load_mapsolarsystems_dict():
+    """
+    加载星系信息数据库备份mapSolarSystems.csv，创建字典mapSolarSystems_dict，键为systemID，值包含
+    "regionID","constellationID","solarSystemName","x","y","z","xMin","xMax","yMin","yMax","zMin","zMax","luminosity",
+    "border","fringe","corridor","hub","international","regional","constellation","security","factionID","radius",
+    "sunTypeID","securityClass"
+
+    :return:
+    """
+    with open(mapSolarSystems_csv_filename, 'r') as f:
+        # r = list(csv.DictReader(f))
+        r = csv.DictReader(f)
+        for i in r:
+            mapSolarSystems_dict[int(i['solarSystemID'])] = i
+
+
+def load_mapsolarsystemjumps_list():
+    """
+    加载星系跳跃信息数据库备份mapSolarSystems.csv，创建列表mapSolarSystemJumps_list，列表元素为两个相互连接的星系的id，
+    fromSolarSystemID 和 toSolarSystemID
+
+    :return:
+    """
+    with open(mapSolarSystemJumps_csv_filename, 'r') as f:
+        r = list(csv.DictReader(f))
+        for i in r:
+            mapSolarSystemJumps_list.append((int(i['fromSolarSystemID']), int(i['toSolarSystemID'])))
 
 
 def get_type_name(type_id: int):
@@ -272,7 +332,7 @@ def get_unknown_type_id_info_n_update_dict(type_id: int):
     params = dict()
     params['typeid'] = type_id
     try:
-        r = requests.get(FUZZWORK_URL, params)
+        r = requests.get(FUZZWORK_URL, params, timeout=TIMEOUT)
         # t = MyRequstsThread(FUZZWORK_URL, params)
         # r = t.start()
     except Exception as e:
@@ -339,6 +399,22 @@ def load_market_order_dict_from_json():
     return order_dict
 
 
+def load_route_cache():
+    """
+    从文件data/route_cache.json加载到route_cache_dict，无返回值
+
+    """
+    if os.path.getsize(route_cache_filename) == 0:
+        return
+    try:
+        with open(route_cache_filename, 'rb') as f:
+            r = pickle.load(f)
+        for i in r:
+            route_cache_dict[int(i)] = r[i]
+    except:
+        print("load_route_cache() failed.")
+
+
 def update_market_history_dict(region_id, type_id, r_json):
     market_history_dict[region_id]['history'][type_id]['data'] = r_json
     market_history_dict[region_id]['history'][type_id]['updated'] = True
@@ -353,6 +429,51 @@ def init_region_order_dict():
         region['order'] = dict()
 
 
+def write_route_cache(path_list, min_security=0.0):
+    """
+    将路径记录写入缓存文件
+    :param path_list: 路径ID列表
+    :return:
+    """
+    start_system_id = path_list[0]
+    dest_system_id = path_list[-1]
+
+    global route_cache_dict
+
+    if min_security not in route_cache_dict.keys():
+        route_cache_dict[min_security] = list()
+
+    for pl in route_cache_dict[min_security]:
+        if start_system_id in pl and dest_system_id in pl:
+            return
+    route_cache_dict[min_security].append(path_list)
+
+    with open('data/route_cache', 'wb') as f:
+        pickle.dump(route_cache_dict, f)
+
+
+def search_route_cache(start_system_id: int, dest_system_id: int, min_security=0.0):
+    """
+    搜索路径是否已经在缓存中
+    :param start_system_id: 起始星系
+    :param dest_system_id: 终点星系
+    :return: 路径列表
+    """
+    if min_security not in route_cache_dict.keys():
+        return []
+
+    for pl in route_cache_dict[min_security]:
+        if start_system_id in pl and dest_system_id in pl:
+            s_idx = pl.index(start_system_id)
+            d_idx = pl.index(dest_system_id)
+            if s_idx < d_idx:  # 路径方向和记录相同
+                return pl[s_idx: d_idx+1]
+            else:  # 路径方向和记录相反
+                r = pl[d_idx: s_idx+1]
+                r.reverse()
+                return r
+    return []
+
 def delay_functions():
     load_region_id()
     load_system_id()
@@ -363,17 +484,38 @@ def delay_functions():
     load_location_system()
     load_type_id()
     load_market_history_dict_from_json()
+    load_typeid_volume()
+    load_mapsolarsystems_dict()
+    load_mapsolarsystemjumps_list()
+    load_route_cache()
 
-# system_id_dict = load_system_id()
-# constellation_id_dict = load_constellation_id()
-# region_id_dict = load_region_id()
-# system_constellation_dict = load_system_constellation()
-# constellation_region_dict = load_constellation_region()
-# type_id_dict = load_type_id()
-# market_history_dict = load_market_history_dict_from_json()
-# unknown_type_id_queue = queue.Queue()
 
-# market_order_dict = load_market_order_dict_from_json()
+# ############## 测试用函数 ###############
+def write_detailed_profitable_orders_dict():
+    global detailed_profitable_orders_dict
+    with open('data/test/all_profitable_orders_dict.json', 'w', encoding='utf-8') as f:
+        json.dump(detailed_profitable_orders_dict, f)
+
+
+def fast_load_detailed_profitable_orders_dict():
+    """
+    快速载入detailed_profitable_orders_dict
+    :return:
+    """
+    global detailed_profitable_orders_dict
+    with open('data/test/all_profitable_orders_dict.json', 'r') as f:
+        tmp_dict = json.load(f)
+        for i in tmp_dict.keys():
+            detailed_profitable_orders_dict[int(i)] = tmp_dict[i]
+
+    # with open('data/test/all_profitable_orders_dict.json', 'r') as f:
+    #     j = json.load(f)
+    #
+    # r = dict()
+    # for type_id, info in j.items():
+    #     r[int(type_id)] = info
+    #
+    # return r
 
 
 def main():

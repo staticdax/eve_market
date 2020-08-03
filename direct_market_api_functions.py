@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- encoding:UTF-8 -*-
 
 import requests
 import data_helper
@@ -12,7 +11,6 @@ ROOT_URL = 'https://esi.evepc.163.com/'
 VERSION = 'latest'
 # VERSION = 'dev'
 API_URL = ROOT_URL + VERSION
-MARKET_URL = 'markets'
 
 TIMEOUT = 20
 

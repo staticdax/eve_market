@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- encoding:UTF-8 -*-
 
 import json
 import direct_market_api_functions
@@ -8,15 +7,17 @@ import time
 import requests
 import gc
 
+
 def fast_load_profitable_order_dict():
-    with open('data/test/all_profitable_orders_dict.json') as f:
-        j =  json.load(f)
+    with open('data/test/all_profitable_orders_dict.json', 'r') as f:
+        j = json.load(f)
 
     r = dict()
     for type_id, info in j.items():
         r[int(type_id)] = info
 
     return r
+
 
 class TestClass:
     def __init__(self, content):

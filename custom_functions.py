@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# -*- encoding:UTF-8 -*-
-import queue
 
-import direct_market_api_functions
+import queue
 import data_helper
+import direct_market_api_functions
 import multithread_functions
 from datetime import datetime, timedelta
-from memory_profiler import profile
 
 
 def get_item_market_history_of_region_from_api_or_local(region_id: int, type_id: int) -> list:
@@ -94,17 +92,19 @@ def get_last_n_day_orders(region_id: int, type_id: int, n: int) -> int:
     return order_sum
 
 
-#@profile
-def renew_region_markets_orders_dict_from_api_multi(thread_num=10):
+def renew_region_markets_orders_dict_multi(thread_num=10, region='All'):
     """
     获得全部星域市场的订单，更新data_helper.market_orders_dict
 
+    :param region: 是否选择全星域，默认为是，否为帝国控制星域
     :param thread_num: 线程数
     :return: 无返回值，更新data_helper.region_markets_orders_dict {regoin_id_1:[{order_1},...], region_id_2:[{},...], ...}
     """
     data_helper.region_markets_orders_dict = dict()
-    region_list = data_helper.region_id_dict.keys()
-    # region_list = [10000001, 10000011]
+    if region == 'All':
+        region_list = data_helper.region_id_dict.keys()
+    elif region == 'Empire regions':
+        region_list = data_helper.empire_region_id_list
     if len(data_helper.region_markets_orders_dict) > 0:
         data_helper.region_markets_orders_dict = dict()
     get_all_orders_task = multithread_functions.MyGetTask(region_list)
@@ -121,10 +121,9 @@ def renew_region_markets_orders_dict_from_api_multi(thread_num=10):
     # del threads
 
     # renew_all_orders_by_typeid_dict()
-    # renew_all_profitable_orders_dict()
+    # renew_detailed_profitable_orders_dict()
 
 
-#@profile
 def renew_all_orders_by_typeid_dict():
     """
     更新data_help.all_orders_by_typeid_dict，
@@ -144,27 +143,6 @@ def renew_all_orders_by_typeid_dict():
             if order['type_id'] not in data_helper.all_orders_by_typeid_dict.keys():
                 data_helper.all_orders_by_typeid_dict[order['type_id']] = list()
             data_helper.all_orders_by_typeid_dict[order['type_id']].append(order)
-
-
-def write_market_order_dict_to_file_todo():
-    """
-    将data_helper.market_orders_dict写入到文件data/markets/all_region_orders.json，供后续读取
-
-    :return:
-    """
-    # if len(data_helper.region_markets_orders_dict) > 0:
-    #     for region_id in data_helper.region_markets_orders_dict.keys():
-    #         if len(data_helper.region_markets_orders_dict[region_id]) > 0:
-    #             # print(region_id)
-    #             multithread_functions.write_json_into_file_multi_thread('data/markets/{}'.format(region_id),
-    #                                                                     'order.json',
-    #                                                                     data_helper.region_markets_orders_dict[
-    #                                                                         region_id])
-    if len(data_helper.region_markets_orders_dict) > 0:
-        data_helper.write_json_into_file('data/markets', 'all_region_orders.json',
-                                         data_helper.region_markets_orders_dict)
-    else:
-        print("data_helper.market_order_dict's length is zero.")
 
 
 def get_active_order_in_region_multi_todo(region_id: int, thread_num=20):
@@ -190,44 +168,7 @@ def get_active_order_in_region_multi_todo(region_id: int, thread_num=20):
     print("TODO: 重写")
 
 
-def get_profitable_order_in_region_todo(region_id: int, tax_rate=0.05, thread_num=20):
-    """
-    返回星域市场内可以赚取价差的订单
-    TODO: 重写
-
-    :param region_id: 星域ID
-    :param tax_rate: 销售税率
-    :param thread_num: 获取同时商品订单的线程数
-    :return: {type_id_1:{'buy':[{},{},...],'sell':[{},{},...]}, type_id_2:...}
-    """
-    # r = dict()
-    # tmp = get_active_order_in_region_multi(region_id, thread_num)
-    # for type_id, orders in tmp:
-    #     so_list, bo_list = list(), list()
-    #     for o in orders:
-    #         if o['is_buy_order']:
-    #             bo_list.append(o)
-    #         else:
-    #             so_list.append(o)
-    #         bo_list.sort(key=lambda x: x['price'], reverse=True)
-    #         so_list.sort(key=lambda x: x['price'], reverse=False)
-    #
-    #         if len(bo_list) > 0 and len(so_list) > 0 and bo_list[0]['price'] * (1 - tax_rate) > so_list[0]['price']:
-    #             r[type_id] = {'buy': bo_list, 'sell': so_list}
-    # return r
-
-
-# def get_single_type_sorted_bns_orders_dict(orders_dict: dict):
-#     """
-#
-#     :param orders_dict: 单个种类的bns_orders_dict {'buy':[{order_1},{order_2},...],'sell':[{order_1}, ...]}
-#     :return: 买单按价格降序排列，卖单价格按升序排列
-#     """
-#     orders_dict['buy'].sort(key=lambda x: x['price'], reverse=True)
-#     orders_dict['sell'].sort(key=lambda x: x['price'], reverse=False)
-
-
-def get_profitable_order(order_dict: dict, tax_rate=0.05):
+def get_profitable_orders(order_dict: dict, tax_rate=0.05):
     """
     返回所有星域市场范围内可以赚取价差的订单
 
@@ -256,7 +197,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
     """
     获取各差价订单详细信息的字典，type_id为键，值为详细信息的字典
 
-    :param profitable_bns_orders_dict: get_profitable_order()得到的字典
+    :param profitable_bns_orders_dict: get_profitable_orders()得到的字典
     {type_id_1:{'buy':[{order_1},{order_2},...],'sell':[{order_1}, ...]}, type_id_2:...}
     :param tax_rate: 空间站销售税率
     :param profit_min: 最低利润
@@ -333,6 +274,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
                                                'profit_rate': profit_sum / cost,
                                                'buy': buy_list,
                                                'sell': sell_list,
+                                               'total_volume': data_helper.typeid_packaged_volume_dict[type_id] * volume,
                                                'rating': profit_sum / cost / (len(buy_list) + len(sell_list))}
     return profitable_orders_dict
     # pure_profit_sorted_list = sorted(profitable_orders_dict.items(), key=lambda x:x[1]['profit'], reverse=True)
@@ -341,8 +283,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
     # return pure_profit_sorted_list
 
 
-#@profile
-def renew_all_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # interstellar_logistic
+def renew_detailed_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # interstellar_logistic
     """
     更新data_helper.all_profitable_orders_dict
     {type_id_1:{info1:info, info2:info, ..., buy:[{order}, ...], sell:[{order}, ...]}, type_id_2: {...}, ...}
@@ -351,13 +292,12 @@ def renew_all_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # interstell
     :param min_profit: 最小利润
     :return:
     """
-    profitable_bns_orders_dict = get_profitable_order(data_helper.all_orders_by_typeid_dict)
-    data_helper.all_profitable_orders_dict = get_detailed_profitable_orders_dict(profitable_bns_orders_dict,
-                                                                                 tax_rate, min_profit)
+    profitable_bns_orders_dict = get_profitable_orders(data_helper.all_orders_by_typeid_dict)
+    data_helper.detailed_profitable_orders_dict = get_detailed_profitable_orders_dict(profitable_bns_orders_dict,
+                                                                                      tax_rate, min_profit)
 
 
-#@profile
-def get_profitable_orders_sorted_dict(profitable_orders_dict: dict, min_profit=0, sorted_by='rating', reverse=True):
+def get_sorted_detailed_profitable_orders_dict(profitable_orders_dict: dict, min_profit=0, sorted_by='rating', reverse=True):
     """
     对profitable_orders_dict进行排序，过滤，
 
@@ -366,7 +306,7 @@ def get_profitable_orders_sorted_dict(profitable_orders_dict: dict, min_profit=0
     :param min_profit: 最小利润
     :param sorted_by: 排序依据，可选'profit', 'buy_order_num', 'sell_order_num', 'volume', 'cost', 'profit_rate', 'rating'
     :param reverse: 是否降序排序，默认为降序排序
-    :return:
+    :return: 经过排序后的detailed_profitable_orders_dict字典
     """
     if sorted_by not in list(profitable_orders_dict.values())[0].keys():
         print("sorted_by key not exists. Try again.")
@@ -380,32 +320,23 @@ def get_profitable_orders_sorted_dict(profitable_orders_dict: dict, min_profit=0
     return r_dict
 
 
-if __name__ == '__main__':
-    # r = get_profitable_order_in_region(10000002, 0.05, 50)
-    # # print("get_profitable_order_in_region: ".format(len(r)))
-    # # print(r)
-    # if len(r) > 0:
-    #     r = get_pure_profit_orders(r, 0.05)
-    #     lrange = len(r) if len(r) < 5 else 5
-    #     for i in range(lrange):
-    #         print(r[i])
+def write_market_order_dict_to_file_todo():
+    """
+    将data_helper.market_orders_dict写入到文件data/markets/all_region_orders.json，供后续读取
 
-    # get_orders_of_all_region_from_api_multi()
+    :return:
+    """
+    # if len(data_helper.region_markets_orders_dict) > 0:
+    #     for region_id in data_helper.region_markets_orders_dict.keys():
+    #         if len(data_helper.region_markets_orders_dict[region_id]) > 0:
+    #             # print(region_id)
+    #             multithread_functions.write_json_into_file_multi_thread('data/markets/{}'.format(region_id),
+    #                                                                     'order.json',
+    #                                                                     data_helper.region_markets_orders_dict[
+    #                                                                         region_id])
+    if len(data_helper.region_markets_orders_dict) > 0:
+        data_helper.write_json_into_file('data/markets', 'all_region_orders.json',
+                                         data_helper.region_markets_orders_dict)
+    else:
+        print("data_helper.market_order_dict's length is zero.")
 
-    # d = data_helper.market_order_dict
-    # id(d)
-
-    # renew_region_markets_orders_dict_from_api_multi()
-    # print('orders updated.')
-
-    #
-    renew_region_markets_orders_dict_from_api_multi()
-    # renew_all_orders_by_typeid_dict()
-    # print('orders updated from file.')
-    renew_all_profitable_orders_dict()
-    r = get_profitable_orders_sorted_dict(data_helper.all_profitable_orders_dict, min_profit=50000000,
-                                          sorted_by='rating', reverse=True)
-    pass
-    # data_helper.write_json_into_file('data/test', 'all_profitable_orders_dict.json',
-    #                                  data_helper.all_profitable_orders_dict)
-    pass
