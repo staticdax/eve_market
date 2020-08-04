@@ -2,6 +2,7 @@
 /__pycache__/
 /qt5_test/
 /data/markets/
+/data/route_cache
 /test/
 /data/test/
 /test_functions.py

@@ -204,7 +204,17 @@ def load_mapsolarsystems_dict():
         # r = list(csv.DictReader(f))
         r = csv.DictReader(f)
         for i in r:
-            mapSolarSystems_dict[int(i['solarSystemID'])] = i
+            solarSystemID = int(i['solarSystemID'])
+            mapSolarSystems_dict[solarSystemID] = i
+            mapSolarSystems_dict[solarSystemID]['x'] = float(i['x'])
+            mapSolarSystems_dict[solarSystemID]['y'] = float(i['y'])
+            mapSolarSystems_dict[solarSystemID]['z'] = float(i['z'])
+            mapSolarSystems_dict[solarSystemID]['xMin'] = float(i['xMin'])
+            mapSolarSystems_dict[solarSystemID]['yMin'] = float(i['yMin'])
+            mapSolarSystems_dict[solarSystemID]['zMin'] = float(i['zMin'])
+            mapSolarSystems_dict[solarSystemID]['xMax'] = float(i['xMax'])
+            mapSolarSystems_dict[solarSystemID]['yMax'] = float(i['yMax'])
+            mapSolarSystems_dict[solarSystemID]['zMax'] = float(i['zMax'])
 
 
 def load_mapsolarsystemjumps_list():
@@ -404,6 +414,10 @@ def load_route_cache():
     从文件data/route_cache.json加载到route_cache_dict，无返回值
 
     """
+    if not os.path.exists(route_cache_filename):
+        with open(route_cache_filename, 'w') as f:
+            pass
+
     if os.path.getsize(route_cache_filename) == 0:
         return
     try:
