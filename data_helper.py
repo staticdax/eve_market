@@ -3,6 +3,7 @@
 import json
 import csv
 import os
+import numpy as np
 import requests
 import queue
 import pickle
@@ -82,8 +83,6 @@ empire_region_id_list = [10000054, 10000036, 10000043, 10000067, 10000052, 10000
 def load_region_id():
     """
     加载含有星域id和星域名称的json文件，更新region_id_dict(星域id为键，名称为值的字典)
-
-    :return:
     """
     with open(region_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -94,8 +93,6 @@ def load_region_id():
 def load_constellation_id():
     """
     加载含有星座id和星域名称的json文件，更新constellation_id_dict(星座id为键，名称为值的字典)
-
-    :return:
     """
     with open(constellation_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -106,8 +103,6 @@ def load_constellation_id():
 def load_constellation_region():
     """
     加载含有星座id和星域id的json文件，更新constellation_region_dict(星座id为键，星域id为值的字典)
-
-    :return:
     """
     with open('data/constellation_region.json', 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -118,8 +113,6 @@ def load_constellation_region():
 def load_system_id():
     """
     加载含有星系id和星系名称的json文件，更新system_id_dict(星系id为键，星系名称为值的字典)
-
-    :return:
     """
     with open(system_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -130,8 +123,6 @@ def load_system_id():
 def load_system_constellation():
     """
     加载含有星系id和星座id的json文件，更新system_constellation_dict(星系id为键，星座id为值的字典)
-
-    :return:
     """
     with open('data/system_constellation.json', 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -142,8 +133,6 @@ def load_system_constellation():
 def load_location_id():
     """
     加载含有空间站id和空间站名称的json文件，更新location_id_dict(空间站id为键，空间站名称为值的字典)
-
-    :return:
     """
     with open(location_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -154,8 +143,6 @@ def load_location_id():
 def load_location_system():
     """
     加载含有空间站id和星系id的json文件，更新location_system_dict(空间站id为键，星系id为值的字典)
-
-    :return:
     """
     with open('data/location_system.json', 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -166,8 +153,6 @@ def load_location_system():
 def load_type_id():
     """
     加载物品type_id和物品名称，更新type_id_dict(type_id为键，type_name为值的字典)
-
-    :return:
     """
     with open(type_id_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -178,8 +163,6 @@ def load_type_id():
 def load_typeid_volume():
     """
     加载物品typeid和物品体积volume，更新typeid_volume_dict(typeid为键，volume为值)
-
-    :return:
     """
     with open(typeid_volume_filename, 'r', encoding='utf-8') as f:
         j = json.load(f)
@@ -197,32 +180,28 @@ def load_mapsolarsystems_dict():
     "regionID","constellationID","solarSystemName","x","y","z","xMin","xMax","yMin","yMax","zMin","zMax","luminosity",
     "border","fringe","corridor","hub","international","regional","constellation","security","factionID","radius",
     "sunTypeID","securityClass"
-
-    :return:
     """
     with open(mapSolarSystems_csv_filename, 'r') as f:
         # r = list(csv.DictReader(f))
         r = csv.DictReader(f)
         for i in r:
-            solarSystemID = int(i['solarSystemID'])
-            mapSolarSystems_dict[solarSystemID] = i
-            mapSolarSystems_dict[solarSystemID]['x'] = float(i['x'])
-            mapSolarSystems_dict[solarSystemID]['y'] = float(i['y'])
-            mapSolarSystems_dict[solarSystemID]['z'] = float(i['z'])
-            mapSolarSystems_dict[solarSystemID]['xMin'] = float(i['xMin'])
-            mapSolarSystems_dict[solarSystemID]['yMin'] = float(i['yMin'])
-            mapSolarSystems_dict[solarSystemID]['zMin'] = float(i['zMin'])
-            mapSolarSystems_dict[solarSystemID]['xMax'] = float(i['xMax'])
-            mapSolarSystems_dict[solarSystemID]['yMax'] = float(i['yMax'])
-            mapSolarSystems_dict[solarSystemID]['zMax'] = float(i['zMax'])
+            solar_system_id = int(i['solarSystemID'])
+            mapSolarSystems_dict[solar_system_id] = i
+            mapSolarSystems_dict[solar_system_id]['x'] = float(i['x'])
+            mapSolarSystems_dict[solar_system_id]['y'] = float(i['y'])
+            mapSolarSystems_dict[solar_system_id]['z'] = float(i['z'])
+            mapSolarSystems_dict[solar_system_id]['xMin'] = float(i['xMin'])
+            mapSolarSystems_dict[solar_system_id]['yMin'] = float(i['yMin'])
+            mapSolarSystems_dict[solar_system_id]['zMin'] = float(i['zMin'])
+            mapSolarSystems_dict[solar_system_id]['xMax'] = float(i['xMax'])
+            mapSolarSystems_dict[solar_system_id]['yMax'] = float(i['yMax'])
+            mapSolarSystems_dict[solar_system_id]['zMax'] = float(i['zMax'])
 
 
 def load_mapsolarsystemjumps_list():
     """
     加载星系跳跃信息数据库备份mapSolarSystems.csv，创建列表mapSolarSystemJumps_list，列表元素为两个相互连接的星系的id，
     fromSolarSystemID 和 toSolarSystemID
-
-    :return:
     """
     with open(mapSolarSystemJumps_csv_filename, 'r') as f:
         r = list(csv.DictReader(f))
@@ -234,13 +213,13 @@ def get_type_name(type_id: int):
     if validate_type_id(type_id):
         return type_id_dict[type_id]
     else:
-        print("Todo: need to request FUZZWORK({})".format(type_id))
+        print("Todo: need to request /universe/types/{}/".format(type_id))
         return "unknown item"
     # try:
     #     return type_id_dict[type_id]
     # except KeyError as e:
     #     print(e)
-    #     print("Todo: try to request FUZZWORK")
+    #     print("Todo: try to request /universe/types/{}/")
     #     return "unknown item"
 
 
@@ -324,6 +303,12 @@ def validate_type_id(type_id: int):
 
 def validate_type_name(type_name: str):
     if type_name in type_id_dict.values():
+        return True
+    return False
+
+
+def validate_system_is_in_region(system_id: int, region_id: int):
+    if region_id == int(mapSolarSystems_dict[system_id]['regionID']):
         return True
     return False
 
@@ -425,7 +410,7 @@ def load_route_cache():
             r = pickle.load(f)
         for i in r:
             route_cache_dict[int(i)] = r[i]
-    except:
+    except Exception as e:
         print("load_route_cache() failed.")
 
 
@@ -446,8 +431,9 @@ def init_region_order_dict():
 def write_route_cache(path_list, min_security=0.0):
     """
     将路径记录写入缓存文件
+
     :param path_list: 路径ID列表
-    :return:
+    :param min_security: 路径上星系的最小安全等级（软性要求）
     """
     start_system_id = path_list[0]
     dest_system_id = path_list[-1]
@@ -469,6 +455,8 @@ def write_route_cache(path_list, min_security=0.0):
 def search_route_cache(start_system_id: int, dest_system_id: int, min_security=0.0):
     """
     搜索路径是否已经在缓存中
+
+    :param min_security: 路径上星系的最小安全等级（软性要求）
     :param start_system_id: 起始星系
     :param dest_system_id: 终点星系
     :return: 路径列表
@@ -481,12 +469,26 @@ def search_route_cache(start_system_id: int, dest_system_id: int, min_security=0
             s_idx = pl.index(start_system_id)
             d_idx = pl.index(dest_system_id)
             if s_idx < d_idx:  # 路径方向和记录相同
-                return pl[s_idx: d_idx+1]
+                return pl[s_idx: d_idx + 1]
             else:  # 路径方向和记录相反
-                r = pl[d_idx: s_idx+1]
+                r = pl[d_idx: s_idx + 1]
                 r.reverse()
                 return r
     return []
+
+
+def get_ndarray_of_tow_systems_coordinates(system_id_1: int, system_id_2: int):
+    """
+    返回 numpy.ndarray 对象，这个对象包含一对星系的坐标
+
+    :param system_id_1: 第一个星系id
+    :param system_id_2: 第二个星系id
+    :return: 包含一对星系的坐标的 numpy.ndarray 对象
+    """
+    i = mapSolarSystems_dict[system_id_1]
+    j = mapSolarSystems_dict[system_id_2]
+    return np.asarray(((i['x'], i['y'], i['z']), (j['x'], j['y'], j['z'])))
+
 
 def delay_functions():
     load_region_id()
@@ -514,9 +516,9 @@ def write_detailed_profitable_orders_dict():
 def fast_load_detailed_profitable_orders_dict():
     """
     快速载入detailed_profitable_orders_dict
-    :return:
     """
     global detailed_profitable_orders_dict
+    global tmp_dict
     with open('data/test/all_profitable_orders_dict.json', 'r') as f:
         tmp_dict = json.load(f)
         for i in tmp_dict.keys():

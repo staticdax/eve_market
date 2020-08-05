@@ -42,6 +42,6 @@ def pyqtgraph_test():
 if __name__ == '__main__':
     data_helper.delay_functions()
     # ########### pyqtgraph 测试 ###########
-    # pyqtgraph_test()
+    pyqtgraph_test()
     # ########### matplotlib 测试 ###########
-    matplotlib_test()
+    # matplotlib_test()
