@@ -65,12 +65,12 @@ def interact_logistic_profitable_orders_dict(profitable_orders_dict: dict):
                     tmp_dict = p_dict[int(il_choice_1)]
                     while True:
                         print("{} {} profit_rate: {:.2f} profit: {:,.2f} cost: {:,.2f} buyer: {} "
-                              "seller: {} qty.: {:,} total_volume: {:,.2f}, volume: {:,}"
+                              "seller: {} qty.: {:,} volume: {:,} total_volume: {:,.2f}"
                               .format(int(il_choice_1), tmp_dict['type_name'],
                                       tmp_dict['profit_rate'], tmp_dict['profit'], tmp_dict['cost'],
                                       len(tmp_dict['buy']), len(tmp_dict['sell']), tmp_dict['volume'],
-                                      tmp_dict['total_volume'],
-                                      data_helper.typeid_packaged_volume_dict[int(il_choice_1)]))
+                                      data_helper.typeid_packaged_volume_dict[int(il_choice_1)],
+                                      tmp_dict['total_volume']))
                         print('''---------------------
 enter) 全部显示
 b) 显示买单详情   
@@ -80,12 +80,12 @@ q) 返回
                         il_choice_2 = input('其他任意键返回:')
                         if il_choice_2 == '':
                             print("{} {} profit_rate: {:.2f} profit: {:,.2f} cost: {:,.2f} buyer: {} "
-                                  "seller: {} qty.: {:,} total_volume: {:,.2f}, volume: {:,}"
+                                  "seller: {} qty.: {:,} volume: {:,} total_volume: {:,.2f}"
                                   .format(int(il_choice_1), tmp_dict['type_name'],
                                           tmp_dict['profit_rate'], tmp_dict['profit'], tmp_dict['cost'],
                                           len(tmp_dict['buy']), len(tmp_dict['sell']), tmp_dict['volume'],
-                                          tmp_dict['total_volume'],
-                                          data_helper.typeid_packaged_volume_dict[int(il_choice_1)]))
+                                          data_helper.typeid_packaged_volume_dict[int(il_choice_1)],
+                                          tmp_dict['total_volume']))
                             interact_orders_dicts_list(tmp_dict['sell'], tmp_dict['buy'])
                             show_trade_route(int(il_choice_1))
                             # input()
@@ -234,7 +234,7 @@ def show_trade_route(type_id: int):
                 continue
         except ValueError:  # start_system_id是非数字
             if data_helper.validate_system_name(start_system_id):
-                f = filter(lambda x:x[1] == start_system_id, data_helper.system_id_dict.items())
+                f = filter(lambda x: x[1] == start_system_id, data_helper.system_id_dict.items())
                 for k, v in f:
                     start_system_id = k
                 break
@@ -245,7 +245,8 @@ def show_trade_route(type_id: int):
         # if data_helper.validate_system_id(start_system_id) or data_helper.validate_system_name(start_system_id):
         #     if
     sell_orders_route, buy_orders_route, waypoints1, waypoints2 = route_calculator.trade_route_calc(start_system_id,
-                                                                                           type_id, min_security)
+                                                                                                    type_id,
+                                                                                                    min_security)
     print("Sell orders route: ", end='')
     route_calculator.show_route_info(sell_orders_route, waypoints1)
     print("Buy orders route: ", end='')
