@@ -2,7 +2,7 @@
 
 import queue
 import data_helper
-import direct_market_api_functions
+import direct_api_functions
 import multithread_functions
 from datetime import datetime, timedelta
 
@@ -17,7 +17,7 @@ def get_item_market_history_of_region_from_api_or_local(region_id: int, type_id:
         data_helper.market_history_dict[region_id]['history'][type_id] = dict()
         data_helper.market_history_dict[region_id]['history'][type_id]['updated'] = False
 
-    return direct_market_api_functions.get_item_market_history_of_region(region_id, type_id)
+    return direct_api_functions.get_item_market_history_of_region(region_id, type_id)
 
 
 def get_last_n_day_volume(region_id: int, type_id: int, n: int) -> int:
@@ -54,6 +54,22 @@ def get_last_n_day_volume(region_id: int, type_id: int, n: int) -> int:
         # print("{} _['volume']: {}".format(_['date'], _['volume']))
         volume_sum += _['volume']
     return volume_sum
+
+
+def get_type_name(type_id: int):
+    name = data_helper.get_type_name_from_dict(type_id)
+    if name is None:
+        info = direct_api_functions.get_type_id_info_from_api(type_id)
+        if info is None:
+            print('custom_functions.get_type_name() error, type_id: {}'.format(type_id))
+            return
+        else:
+            data_helper.type_id_dict[type_id] = info['name']
+            data_helper.typeid_packaged_volume_dict[type_id] = info['packaged_volume']
+            return data_helper.type_id_dict[type_id]
+    else:
+        return name
+
 
 
 def get_last_n_day_orders(region_id: int, type_id: int, n: int) -> int:
@@ -205,7 +221,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
     """
     profitable_orders_dict = dict()
     for type_id, bns_orders in profitable_bns_orders_dict.items():
-        # print("{} {}".format(type_id, data_helper.get_type_name(type_id)))
+        # print("{} {}".format(type_id, data_helper.get_type_name_from_dict(type_id)))
         sell_q = queue.Queue()
         buy_q = queue.Queue()
         for k, v in bns_orders.items():
@@ -265,7 +281,7 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
             else:
                 sell_list.append(tmp_order)
         if profit_sum > profit_min:
-            profitable_orders_dict[type_id] = {'type_name': data_helper.get_type_name(type_id),
+            profitable_orders_dict[type_id] = {'type_name': get_type_name(type_id),
                                                'profit': profit_sum,
                                                'buy_order_num': len(buy_list),
                                                'sell_order_num': len(sell_list),
@@ -274,7 +290,8 @@ def get_detailed_profitable_orders_dict(profitable_bns_orders_dict: dict, tax_ra
                                                'profit_rate': profit_sum / cost,
                                                'buy': buy_list,
                                                'sell': sell_list,
-                                               'total_volume': data_helper.typeid_packaged_volume_dict[type_id] * volume,
+                                               'total_volume': data_helper.typeid_packaged_volume_dict[
+                                                                   type_id] * volume,
                                                'rating': profit_sum / cost / (len(buy_list) + len(sell_list))}
     return profitable_orders_dict
     # pure_profit_sorted_list = sorted(profitable_orders_dict.items(), key=lambda x:x[1]['profit'], reverse=True)
@@ -297,7 +314,8 @@ def renew_detailed_profitable_orders_dict(tax_rate=0.05, min_profit=0):  # inter
                                                                                       tax_rate, min_profit)
 
 
-def get_sorted_detailed_profitable_orders_dict(profitable_orders_dict: dict, min_profit=0, sorted_by='rating', reverse=True):
+def get_sorted_detailed_profitable_orders_dict(profitable_orders_dict: dict, min_profit=0, sorted_by='rating',
+                                               reverse=True):
     """
     对profitable_orders_dict进行排序，过滤，
 
@@ -340,3 +358,8 @@ def write_market_order_dict_to_file_todo():
     else:
         print("data_helper.market_order_dict's length is zero.")
 
+
+if __name__ == '__main__':
+    # ############## test get_type_name() ##############
+    # print(get_type_name(55822))
+    pass

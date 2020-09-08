@@ -2,11 +2,11 @@
 
 import data_helper
 import custom_functions
-import direct_market_api_functions
+import direct_api_functions
 import output_handle_functions
 
 
-def input_get_region_market_history():
+def get_region_market_history():
     region_id = input("星域编号(default: 10000002): ")
     region_id = 10000002 if region_id == '' else int(region_id)
     # print(region_id)
@@ -26,7 +26,7 @@ def input_get_region_market_history():
     # direct_market_functions.get_item_market_history_of_region()
 
 
-def input_get_region_name():
+def get_region_name():
     region_id = input("星域编号(10000001-10000069, 11000001-11000033, default: 10000002): ")
     region_id = '10000002' if region_id == '' else int(region_id)
     if data_helper.validate_region_id(region_id):
@@ -35,12 +35,12 @@ def input_get_region_name():
         print('invalid input')
 
 
-def input_get_type_order_of_region():
+def get_type_order_of_region():
     region_id = input("星域编号(10000001-10000069, 11000001-11000033, default: 10000002): ")
     region_id = 10000002 if region_id == '' else int(region_id)
     type_id = input("商品编号(default: 34): ")
     type_id = 34 if type_id == '' else int(type_id)
-    type_name = data_helper.get_type_name(type_id)
+    type_name = data_helper.get_type_name_from_dict(type_id)
     if data_helper.validate_region_id(region_id):
         # r = direct_market_api_functions.get_orders_of_region_single_thread(region_id, type_id=type_id)
         # TODO: 单独更新这类订单，对比order_id，不存在的append，存在的对比volume_remain不一样的就更新
@@ -48,10 +48,10 @@ def input_get_type_order_of_region():
         r['buy'] = list()
         r['sell'] = list()
         if len(data_helper.region_markets_orders_dict) == 0:
-            r['buy'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='buy',
-                                                                                      type_id=type_id)
-            r['sell'] = direct_market_api_functions.get_orders_of_region_single_thread(region_id, order_type='sell',
-                                                                                       type_id=type_id)
+            r['buy'] = direct_api_functions.get_orders_of_region_single_thread(region_id, order_type='buy',
+                                                                               type_id=type_id)
+            r['sell'] = direct_api_functions.get_orders_of_region_single_thread(region_id, order_type='sell',
+                                                                                type_id=type_id)
         else:
             for order in data_helper.region_markets_orders_dict[region_id]:
                 if order['is_buy_order']:
@@ -66,7 +66,7 @@ def input_get_type_order_of_region():
         print('invalid input')
 
 
-def input_get_most_order_of_region():
+def get_most_order_of_region():
     print("[WIP]")
     return
 
@@ -145,12 +145,35 @@ def interstellar_logistic(region_id: int, regions='All'):
 
         # 选择b, s, c, q 选项时应该在显示前将其正序排序
         if sorted_by in ['b', 's', 'c', 'q', 'buy_order_num', 'sell_order_num', 'cost', 'volume']:
-            data_helper.tmp_list = custom_functions.get_sorted_detailed_profitable_orders_dict(
+            data_helper.tmp_dict = custom_functions.get_sorted_detailed_profitable_orders_dict(
                 data_helper.detailed_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=False)
         else:
-            data_helper.tmp_list = custom_functions.get_sorted_detailed_profitable_orders_dict(
+            data_helper.tmp_dict = custom_functions.get_sorted_detailed_profitable_orders_dict(
                 data_helper.detailed_profitable_orders_dict, min_profit=min_profit, sorted_by=sorted_by, reverse=True)
-        output_handle_functions.interact_logistic_profitable_orders_dict(data_helper.tmp_list)
+        output_handle_functions.interact_logistic_profitable_orders_dict(data_helper.tmp_dict)
     except Exception as e:
         print(e)
         print("Exception: interstellar_logistic")
+
+
+def get_region_id():
+    while True:
+        start_system_id = input("起始星域编号或名称(default: 吉他/30000142): ")
+        start_system_id = 30000142 if start_system_id == '' else start_system_id
+        try:
+            start_system_id = int(start_system_id)
+            if data_helper.validate_system_id(start_system_id):
+                return start_system_id
+                break
+            else:
+                print("Invalid input, try again.")
+                continue
+        except ValueError:  # start_system_id是非数字
+            if data_helper.validate_system_name(start_system_id):
+                f = filter(lambda x: x[1] == start_system_id, data_helper.system_id_dict.items())
+                for k, v in f:
+                    start_system_id = k
+                return start_system_id
+            else:
+                print("Invalid input, try again.")
+                continue

@@ -2,7 +2,7 @@
 
 import data_helper
 import input_handle_functions
-import direct_market_api_functions
+import direct_api_functions
 
 
 class Menu:
@@ -28,10 +28,10 @@ q) exit
             choice = input("select: ")
             if choice == 's' or choice == 't':
                 if choice == 's':
-                    direct_market_api_functions.set_serenity_server()
+                    direct_api_functions.set_serenity_server()
                     data_helper.set_serenity_server()
                 elif choice == 't':
-                    direct_market_api_functions.set_tranquility_server()
+                    direct_api_functions.set_tranquility_server()
                     data_helper.set_tranquility_server()
                 self.mainMenu.run()
             elif choice == 'q':
@@ -87,12 +87,12 @@ q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'h':
-                input_handle_functions.input_get_region_market_history()
+                input_handle_functions.get_region_market_history()
             elif choice == 't':
-                input_handle_functions.input_get_type_order_of_region()
+                input_handle_functions.get_type_order_of_region()
             elif choice == 'n':
                 print("(todo:重写)")
-                # input_handle_functions.input_get_most_order_of_region()
+                # input_handle_functions.get_most_order_of_region()
             elif choice == 'l':
                 self.menu_interstellar.run()
             elif choice == 'q':
@@ -118,7 +118,7 @@ q) back
 ---------------------''')
             choice = input("select: ")
             if choice == 'r':
-                input_handle_functions.input_get_region_name()
+                input_handle_functions.get_region_name()
             elif choice == 'b':
                 print("option 2")
             elif choice == 'q':

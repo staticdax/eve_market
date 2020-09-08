@@ -121,6 +121,9 @@ def route_calc(start_system_id: int, dest_system_id: int, min_security=0.0):
     r = data_helper.search_route_cache(start_system_id, dest_system_id, min_security)
     if len(r) == 0:
         pl = astar_route_calc(start_system_id, dest_system_id, min_security)
+        if len(pl) == 0:
+            print("Calculation failed, probably wormhole involved.")
+            return []
         data_helper.write_route_cache(pl, min_security)
         return pl
     else:
@@ -140,6 +143,8 @@ def optimal_route(start_system_id: int, waypoint_list: list, min_security=0.0):
     optimized_route = list()
     for wp_list in waypoint_lists:
         tmp_route = route_calc(start_system_id, wp_list[0], min_security)
+        if len(tmp_route) == 0:
+            continue
         for i in range(len(wp_list) - 1):
             tmp_route.extend(route_calc(wp_list[i], wp_list[i + 1], min_security)[1:])
         if len(tmp_route) < min_distance:
@@ -198,7 +203,8 @@ def trade_route_calc(start_system_id: int, type_id: int, min_security=0.0):
 
     finish_sell_orders_route = optimal_route(start_system_id, list(sell_system_id_set), min_security)
     finish_buy_orders_route = optimal_route(finish_sell_orders_route[-1], list(buy_system_id_set), min_security)
-
+    if len(finish_buy_orders_route) == 0 or len(finish_sell_orders_route) == 0:
+        return [], [], [], []
     return finish_sell_orders_route, finish_buy_orders_route, list(sell_system_id_set), list(buy_system_id_set)
 
 

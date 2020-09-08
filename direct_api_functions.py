@@ -33,7 +33,7 @@ def set_tranquility_server():
     API_URL = ROOT_URL + VERSION
 
 
-class RequestParamDefault:
+class RequestDefaultParam:
     def __init__(self):
         self.params = dict()
         self.params['datasource'] = DATA_SOURCE
@@ -49,7 +49,7 @@ def get_orders_of_region_one_page_raw_response(region_id: int, order_type='all',
     :param type_id: 商品id
     :return: requests.Response实例
     """
-    p = RequestParamDefault()
+    p = RequestDefaultParam()
     p.params['order_type'] = order_type
     p.params['page'] = page
     p.params['type_id'] = '' if type_id == -1 else type_id
@@ -73,7 +73,7 @@ def get_orders_of_region_single_thread(region_id: int, order_type='all', page=1,
     订单有效范围range，星系ID system_id，商品ID type_id，商品剩余量volume_remain，商品总量volume_total
     """
     market_orders_list = []
-    p = RequestParamDefault()
+    p = RequestDefaultParam()
     p.params['order_type'] = order_type
     p.params['page'] = page
     p.params['type_id'] = '' if type_id == -1 else type_id
@@ -106,7 +106,7 @@ def get_item_market_history_of_region(region_id: int, type_id: int) -> list:
     :param type_id: 商品id
     :return: json格式解码得到的一个关于商品的历史数据的字典数组，包括日期，平均价格，最高价，最低价，成交订单数，成交量
     """
-    p = RequestParamDefault()
+    p = RequestDefaultParam()
     p.params['type_id'] = type_id
     request_url = "{api_url}/markets/{regionid}/history/".format(api_url=API_URL, regionid=region_id)
     r = requests.get(request_url, p.params, timeout=TIMEOUT)
@@ -128,6 +128,23 @@ def get_item_market_history_of_region(region_id: int, type_id: int) -> list:
         return []
 
 
+def get_type_id_info_from_api(type_id: int):
+    p = RequestDefaultParam()
+    p.params['type_id'] = type_id
+    if p.params['datasource'] == 'serenity':
+        p.params['language'] = 'zh'
+    else:
+        p.params['language'] = 'en-us'
+    requests_url = "{api_url}/universe/types/{type_id}/".format(api_url=API_URL, type_id=type_id)
+    r = requests.get(requests_url, p.params, timeout=TIMEOUT)
+
+    if r.status_code == 200:
+        return r.json()
+    else:
+        print("get_type_id_info_from_api errror, type_id: {}".format(type_id))
+        return
+
+
 def get_type_ids_have_active_order_in_region(region_id: int) -> list:
     """
     星域中有活跃订单的商品id
@@ -136,7 +153,7 @@ def get_type_ids_have_active_order_in_region(region_id: int) -> list:
     :return: 星域中有活跃订单的商品id列表
     """
     type_id_list = []
-    p = RequestParamDefault()
+    p = RequestDefaultParam()
     p.params['page'] = 1
     request_url = "{api_url}/markets/{regionid}/types/".format(api_url=API_URL, regionid=region_id)
     r = requests.get(request_url, p.params, timeout=TIMEOUT)
@@ -158,6 +175,8 @@ def get_type_ids_have_active_order_in_region(region_id: int) -> list:
 
 
 def main():
+    # ################### test get_type_id_info_from_api ###################
+    print(get_type_id_info_from_api(34))
     # r = requests.get('https://esi.evepc.163.com/latest/markets/10000002/orders/?datasource=serenity&order_type=buy&page=1')
     # print(r.json())
     # print(len(r.json()))

@@ -3,7 +3,7 @@
 import threading
 import queue
 import data_helper
-import direct_market_api_functions
+import direct_api_functions
 
 thread_num = 20
 threadLock = threading.Lock()
@@ -48,7 +48,7 @@ def get_current_order_of_type_in_region_single(task: MyGetTask):
             print("\rTask queue size: {}    ".format(task.q.qsize()), end="")
             task.lock.release()
             try:
-                r = direct_market_api_functions.get_orders_of_region_single_thread(task.region_id, type_id=type_id)
+                r = direct_api_functions.get_orders_of_region_single_thread(task.region_id, type_id=type_id)
                 if len(r) > 0:
                     task.result_dict[type_id] = r
             except Exception as e:
@@ -79,13 +79,13 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
             print("\rGet All Orders Task queue size: {}    ".format(task.q.qsize()), end="")
             task.lock.release()
             try:
-                r_response = direct_market_api_functions.get_orders_of_region_one_page_raw_response(region_id)
+                r_response = direct_api_functions.get_orders_of_region_one_page_raw_response(region_id)
                 if r_response.status_code == 200:
                     x_pages = int(r_response.headers['X-Pages'])
                     if x_pages == 1:
                         task.result_dict[region_id] = r_response.json()
                     elif 1 < x_pages < 20:
-                        task.result_dict[region_id] = direct_market_api_functions.get_orders_of_region_single_thread(
+                        task.result_dict[region_id] = direct_api_functions.get_orders_of_region_single_thread(
                             region_id)
                     elif x_pages >= 20:
                         # page_list = [i for i in range(1,x_pages+1)]
@@ -130,8 +130,8 @@ class GetOrdersOfRegionOnePageThread(threading.Thread):
                 print("\rregion: {} Task queue size: {}    ".format(self.task.region_id, self.task.q.qsize()), end='')
                 self.task.lock.release()
                 try:
-                    r = direct_market_api_functions.get_orders_of_region_one_page_raw_response(self.task.region_id,
-                                                                                               page=page)
+                    r = direct_api_functions.get_orders_of_region_one_page_raw_response(self.task.region_id,
+                                                                                        page=page)
                     if r.status_code == 200:
                         if self.task.region_id not in self.task.result_dict.keys():
                             self.task.result_dict[self.task.region_id] = list()

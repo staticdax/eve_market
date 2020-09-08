@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+from datetime import datetime, timedelta
 import data_helper
 import route_calculator
-from datetime import datetime, timedelta
+import input_handle_functions
 
 
 def interact_logistic_profitable_orders_dict(profitable_orders_dict: dict):
@@ -148,7 +149,7 @@ def interact_orders_dicts_list(order_dicts_list: list, order_dicts_list_2=None):
 
     def scrolling_page(order_list: list):
         typeid = order_list[0]['type_id']
-        typename = data_helper.get_type_name(typeid)
+        typename = data_helper.get_type_name_from_dict(typeid)
         list_len = len(order_list)
         page_line = 15
         cursor = 0
@@ -222,25 +223,7 @@ def show_trade_route(type_id: int):
         min_security = 0.5
     else:
         min_security = 0.0
-    while True:
-        start_system_id = input("起始星域编号或名称(default: 吉他/30000142): ")
-        start_system_id = 30000142 if start_system_id == '' else start_system_id
-        try:
-            start_system_id = int(start_system_id)
-            if data_helper.validate_system_id(start_system_id):
-                break
-            else:
-                print("Invalid input, try again.")
-                continue
-        except ValueError:  # start_system_id是非数字
-            if data_helper.validate_system_name(start_system_id):
-                f = filter(lambda x: x[1] == start_system_id, data_helper.system_id_dict.items())
-                for k, v in f:
-                    start_system_id = k
-                break
-            else:
-                print("Invalid input, try again.")
-                continue
+    start_system_id = input_handle_functions.get_region_id()
 
         # if data_helper.validate_system_id(start_system_id) or data_helper.validate_system_name(start_system_id):
         #     if

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
 import json
 import csv
@@ -7,7 +8,7 @@ import numpy as np
 import requests
 import queue
 import pickle
-from memory_profiler import profile
+
 
 FUZZWORK_URL = 'https://www.fuzzwork.co.uk/api/typeid.php'
 TIMEOUT = 20
@@ -209,18 +210,19 @@ def load_mapsolarsystemjumps_list():
             mapSolarSystemJumps_list.append((int(i['fromSolarSystemID']), int(i['toSolarSystemID'])))
 
 
-def get_type_name(type_id: int):
+def get_type_name_from_dict(type_id: int):
     if validate_type_id(type_id):
         return type_id_dict[type_id]
     else:
-        print("Todo: need to request /universe/types/{}/".format(type_id))
-        return "unknown item"
-    # try:
-    #     return type_id_dict[type_id]
-    # except KeyError as e:
-    #     print(e)
-    #     print("Todo: try to request /universe/types/{}/")
-    #     return "unknown item"
+        return
+
+
+def get_type_id(type_name: str):
+    if type_name in type_id_dict.values():
+        f = filter(lambda x: x[1] == type_name, type_id_dict.items())
+        for type_id, n in f:
+            return type_id
+    return -1
 
 
 def get_location_name(location_id: int):
@@ -524,32 +526,14 @@ def fast_load_detailed_profitable_orders_dict():
         for i in tmp_dict.keys():
             detailed_profitable_orders_dict[int(i)] = tmp_dict[i]
 
-    # with open('data/test/all_profitable_orders_dict.json', 'r') as f:
-    #     j = json.load(f)
-    #
-    # r = dict()
-    # for type_id, info in j.items():
-    #     r[int(type_id)] = info
-    #
-    # return r
-
 
 def main():
+    # ############ 测试 get_type_id ############
+    # delay_functions()
+    # print(get_type_id('三钛合金'))
+    # ############
     pass
 
 
 if __name__ == '__main__':
     main()
-    # add_unknown_type_id_2_file(32250)
-    # print(get_unknown_type_id_info_n_update_dict(32250))
-    # print(market_dict)
-    # print(system_id_dict[30000001])
-
-    # print(validate_region_id(10000002))
-    # print(validate_type_id(18))
-    # print(get_unknown_type_id_info_n_update_dict(32250))
-    # print(validate_region_id(10000002))
-
-    # location_id = 60005740
-    # if validate_location_id(location_id):
-    #     print(location_id_dict[location_id])
