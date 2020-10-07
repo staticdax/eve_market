@@ -6,7 +6,7 @@ import threading
 import data_helper
 import custom_functions
 import output_handle_functions
-
+import send_mail
 
 data_helper.set_serenity_server()
 # data_helper.set_tranquility_server()
@@ -19,6 +19,7 @@ exclusive_name_list = ['三钛合金', '锶包合物', '电子元件', '长肢�
                        '斜长岩', '浓缩灼烧岩', '报告', '富凡晶石', '干焦岩', '类银超金属', '超新星诺克石', '超噬矿', '晶状石英核岩',
                        '富沸石', '发光水硼砂']
 exclusive_id_list = []
+oneb_set = set()
 
 for n in exclusive_name_list:
     i = data_helper.get_type_id(n)
@@ -52,15 +53,22 @@ def polling_orders(sleep_time: int):
                 data_helper.tmp_dict.pop(ek)
 
         print_my_tmp_dict()
+
+        need_send_mail = check_oneb_trade()
+        if need_send_mail:
+            send_oneb_mail()
+
         time.sleep(sleep_time)
 
 
 def print_my_tmp_dict():
     now = datetime.now()
-    print("---------------------------- {}{}{:02d} - {:02d}:{:02d}:{:02d} ----------------------------".format(now.year, now.month,
-                                                                                                   now.day, now.hour,
-                                                                                                   now.minute,
-                                                                                                   now.second))
+    print("---------------------------- {}{}{:02d} - {:02d}:{:02d}:{:02d} ----------------------------".format(now.year,
+                                                                                                               now.month,
+                                                                                                               now.day,
+                                                                                                               now.hour,
+                                                                                                               now.minute,
+                                                                                                               now.second))
     for item in data_helper.tmp_dict.items():
         type_id = item[0]
         type_dict = item[1]
@@ -94,6 +102,41 @@ def get_order_info():
         output_handle_functions.interact_orders_dicts_list(t_dict['sell'], t_dict['buy'])
         output_handle_functions.show_trade_route(int(type_id))
         print_my_tmp_dict()
+
+
+def check_oneb_trade():
+    """
+
+    :return: true, oneb_tmp_set发生改变; false, oneb_tmp_set未改名或为oneb_set的子集
+    """
+    global oneb_set
+    oneb = 300000000
+    oneb_tmp_set = set()
+    oneb_order_iter = filter(lambda x: x[1]['profit'] >= oneb, data_helper.tmp_dict.items())
+    for item in oneb_order_iter:
+        oneb_tmp_set.add(item[0])
+    if len(oneb_tmp_set) == 0:
+        oneb_set = oneb_tmp_set
+        return False
+    if oneb_tmp_set != oneb_set:
+        if oneb_tmp_set.issubset(oneb_set):
+            return False
+        oneb_set = oneb_tmp_set
+        return True
+    else:
+        return False
+
+
+def send_oneb_mail():
+    mail_msg = ''
+    for i in oneb_set:
+        t_dict = data_helper.tmp_dict[i]
+        mail_msg += "{} {} profit_rate: {:.2f} profit: {:,.2f} cost: {:,.2f} qty.: {:,} volume: {:,} " \
+                    "total_volume: {:,.2f} \n".format(i, t_dict['type_name'], t_dict['profit_rate'],
+                                                      t_dict['profit'], t_dict['cost'], t_dict['volume'],
+                                                      data_helper.typeid_packaged_volume_dict[i],
+                                                      t_dict['total_volume'])
+    send_mail.send(mail_msg)
 
 
 def main():
