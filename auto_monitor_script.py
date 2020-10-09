@@ -10,6 +10,7 @@ import send_mail
 
 data_helper.set_serenity_server()
 # data_helper.set_tranquility_server()
+# anno for git
 min_profit = 10000000
 sorted_by = 'profit'
 
