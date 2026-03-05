@@ -5,6 +5,10 @@ import data_helper
 import direct_api_functions
 import multithread_functions
 from datetime import datetime, timedelta
+import json
+import yaml
+import csv
+import requests
 
 
 def get_item_market_history_of_region_from_api_or_local(region_id: int, type_id: int) -> list:
@@ -357,6 +361,75 @@ def write_market_order_dict_to_file_todo():
                                          data_helper.region_markets_orders_dict)
     else:
         print("data_helper.market_order_dict's length is zero.")
+
+
+def renew_datafile_type_id_tq_json():
+    data_source = 'https://www.fuzzwork.co.uk/dump/latest'
+    try:
+        f = requests.get(data_source+'/invTypes.csv')
+        with open('./data/invTypes.csv', 'wb') as fh:
+            fh.write(f.content)
+    except Exception as e:
+        print("{} An error oucurred during download.".format(e))
+
+    typedict = dict()
+    with open('./data/invTypes.csv', 'r', encoding='utf-8') as fh:
+        content = csv.DictReader(fh)
+        for i in content:
+            typeid = i['typeID']
+            typedict[typeid] = i['typeName']
+
+    with open('./data/type_id_tq.json', 'w', encoding='utf-8') as fh:
+        json.dump(typedict, fh, indent=2)
+
+
+def renew_datafile_type_id_n_typeid_volume_json_from_sde():
+    typeid_source_file_name = 'typeIDs.yaml'
+    typeid_file_name = 'type_id.json'
+    typeid_volume_file_name = 'typeid_volume.json'
+    with open('../eve_db/'+typeid_source_file_name, 'r', encoding='utf-8') as fh:
+        y1 = yaml.safe_load(fh.read())
+
+    typeid_name_dict = dict()
+    typeid_volume_dict = dict()
+    for i in y1.keys():
+        if y1[i]['name'].__contains__('zh'):
+            typeid_name_dict[str(i)] = y1[i]['name']['zh']
+        else:
+            typeid_name_dict[str(i)] = 'UNKNOWN'
+    for i in y1.keys():
+        if y1[i].__contains__('volume'):
+            typeid_volume_dict[str(i)] = y1[i]['volume']
+
+    with open('./data/'+typeid_file_name, 'w', encoding='utf-8') as fh:
+        json.dump(typeid_name_dict, fh, indent=2)
+    with open('./data/'+typeid_volume_file_name, 'w', encoding='utf-8') as fh:
+        json.dump(typeid_name_dict, fh, indent=2)
+
+
+def renew_datafile_typeid_packaged_volume_json_from_esi():
+    with open('./data/typeid_packaged_volume.json.bak', 'r') as fh:
+        typeid_pvol_dict = json.load(fh)
+
+    for i in typeid_pvol_dict.keys():
+        tmp = direct_api_functions.get_type_id_info_from_api(int(i))
+        typeid_pvol_dict[i] = tmp['packaged_volume']
+
+    with open('./data/typeid_packaged_volume,json', 'w') as fh:
+        json.dump(typeid_pvol_dict, fh, indent=2)
+
+
+def renew_datafile_typeid_packaged_volume_json():
+    typeid_packaged_volume_dict = dict()
+    with open('./data/typeid_packaged_volume_bak.json', 'r') as fh:
+        typeid_packaged_volume_dict = json.load(fh)
+
+    for i in typeid_packaged_volume_dict.keys():
+        tmp = direct_api_functions.get_type_id_info_from_api(int(i))
+        typeid_packaged_volume_dict[i] = tmp['packaged_volume']
+
+    with open('./data/typeid_packaged_volume,json', 'w') as fh:
+        json.dump(typeid_packaged_volume_dict, fh, indent=2)
 
 
 if __name__ == '__main__':

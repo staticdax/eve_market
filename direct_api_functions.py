@@ -6,7 +6,7 @@ import data_helper
 
 DATA_SOURCE = 'serenity'
 # DATA_SOURCE = 'tranquility'
-ROOT_URL = 'https://esi.evepc.163.com/'
+ROOT_URL = 'https://ali-esi.evepc.163.com/'
 # ROOT_URL = 'https://esi.evetech.net/'
 VERSION = 'latest'
 # VERSION = 'dev'
@@ -20,7 +20,7 @@ def set_serenity_server():
     global ROOT_URL
     global API_URL
     DATA_SOURCE = 'serenity'
-    ROOT_URL = 'https://esi.evepc.163.com/'
+    ROOT_URL = 'https://ali-esi.evepc.163.com/'
     API_URL = ROOT_URL + VERSION
 
 
@@ -141,7 +141,7 @@ def get_type_id_info_from_api(type_id: int):
     if r.status_code == 200:
         return r.json()
     else:
-        print("get_type_id_info_from_api errror, type_id: {}".format(type_id))
+        print("get_type_id_info_from_api error, type_id: {}".format(type_id))
         return
 
 
@@ -193,7 +193,7 @@ def main():
     # print(get_item_market_history_of_region(region_id, type_id))
     #
     # sum = get_last_n_day_volume(region_id, type_id, n)
-    # print("商品 #{} 在 {} 最近 {} 天总成交量为 {:,} ".format(type_id, data_helper.region_id_dict[region_id], n, sum))
+    # print("商品 #{} 在 {} 最近 {} 天总成交量为 {:,}".format(type_id, data_helper.region_id_dict[region_id], n, sum))
     # l = get_type_ids_have_active_order_in_region(region_id)
     # print(l)
     # print("len(get_type_ids_have_active_order_in_region(region_id)): {}".format(len(l)))

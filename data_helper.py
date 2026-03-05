@@ -201,7 +201,7 @@ def load_mapsolarsystems_dict():
 
 def load_mapsolarsystemjumps_list():
     """
-    加载星系跳跃信息数据库备份mapSolarSystems.csv，创建列表mapSolarSystemJumps_list，列表元素为两个相互连接的星系的id，
+    加载星系跳跃信息数据库备份mapSolarSystemsJumps.csv，创建列表mapSolarSystemJumps_list，列表元素为两个相互连接的星系的id，
     fromSolarSystemID 和 toSolarSystemID
     """
     with open(mapSolarSystemJumps_csv_filename, 'r') as f:
