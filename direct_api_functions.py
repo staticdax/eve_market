@@ -68,7 +68,7 @@ def get_orders_of_region_single_thread(region_id: int, order_type='all', page=1,
     :param order_type: 买单或卖单，buy/sell/all可选
     :param page: 页数
     :param type_id: 商品id
-    :return: json格式解码得到的一个关于市场顶大的字典数组，持续日期duration，订单类型is_buy_order，创建日期is_buy_order，
+    :return: json格式解码得到的一个关于市场订单的字典数组，持续日期duration，订单类型is_buy_order，创建日期is_buy_order，
     订单所在的空间站位置ID location_id，成交最小量min_volume，订单ID order_id，商品价格price，
     订单有效范围range，星系ID system_id，商品ID type_id，商品剩余量volume_remain，商品总量volume_total
     """

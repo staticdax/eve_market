@@ -17,6 +17,7 @@ class MyGetTask:
     self.lock 线程锁
     self.q 任务队列，存放任务变量的列表的元素初始化时将依次入队
     self.result_dict 结果字典变量，元素形式自定义
+    self.retry_count 重试计数字典，记录每个任务的重试次数
     """
 
     def __init__(self, task_list: list, region_id=10000001):
@@ -28,6 +29,7 @@ class MyGetTask:
             self.q.put(i)
         self.lock.release()
         self.result_dict = dict()
+        self.retry_count = dict()
 
 
 class MyGetCurrentOrderInRegionThread(threading.Thread):
@@ -71,7 +73,13 @@ class MyGetOrdersOfAllRegionsThread(threading.Thread):
         pass
 
 
-def get_orders_of_all_regions_from_api_single(task: MyGetTask):
+def get_orders_of_all_regions_from_api_single(task: MyGetTask, max_retries=3):
+    """
+    从API获取所有星域订单数据
+    
+    :param task: 任务对象，包含任务队列和结果字典
+    :param max_retries: 最大重试次数，默认3次
+    """
     while not task.q.empty():
         task.lock.acquire()
         if not task.q.empty():
@@ -88,20 +96,15 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                         task.result_dict[region_id] = direct_api_functions.get_orders_of_region_single_thread(
                             region_id)
                     elif x_pages >= 20:
-                        # page_list = [i for i in range(1,x_pages+1)]
-                        # print(x_pages)
                         page_list = range(1, x_pages + 1)
                         get_page_sub_task = MyGetTask(page_list, region_id=region_id)
                         t_num = 10
-                        # t_num = 1
                         threads = [GetOrdersOfRegionOnePageThread(get_page_sub_task) for i in range(t_num)]
                         for t in threads:
                             t.start()
                         for t in threads:
                             t.join()
-                        # print(get_page_sub_task.result_dict[region_id])
                         task.result_dict[region_id] = get_page_sub_task.result_dict[region_id]
-                        # del threads
                     else:
                         raise Exception(
                             "something wrong with request {} orders error, response: {}".format(region_id, r_response))
@@ -109,9 +112,12 @@ def get_orders_of_all_regions_from_api_single(task: MyGetTask):
                     raise Exception("request {} orders error, status_code: {}".format(region_id, r_response.status_code))
             except Exception as e:
                 print(e)
-                task.q.put(region_id)
-                # with task.lock:
-                #     task.q.put(region_id)
+                task.retry_count[region_id] = task.retry_count.get(region_id, 0) + 1
+                if task.retry_count[region_id] <= max_retries:
+                    task.q.put(region_id)
+                    print("Region {} retry {}/{}".format(region_id, task.retry_count[region_id], max_retries))
+                else:
+                    print("Region {} failed after {} retries, skipped".format(region_id, max_retries))
         else:
             task.lock.release()
 

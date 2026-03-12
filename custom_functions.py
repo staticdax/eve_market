@@ -116,19 +116,36 @@ def renew_region_markets_orders_dict_multi(thread_num=10, region='All'):
     """
     获得全部星域市场的订单，更新data_helper.market_orders_dict
 
+    执行流程:
+        ① 初始化: 清空 region_markets_orders_dict
+        ② 确定范围: 根据 region 参数选择星域列表
+        ③ 创建任务: MyGetTask 管理任务队列和结果
+        ④ 启动线程: MyGetOrdersOfAllRegionsThread 并行获取订单
+        ⑤ 收集结果: 将 result_dict 复制到 region_markets_orders_dict
+
+    数据流:
+        region_list → MyGetTask → MyGetOrdersOfAllRegionsThread × N → result_dict → region_markets_orders_dict
+
+    内存注意:
+        - result_dict 和 region_markets_orders_dict 存储相同数据
+        - 峰值时内存翻倍，后续可优化直接写入目标字典
+
     :param region: 是否选择全星域，默认为是，否为帝国控制星域
     :param thread_num: 线程数
-    :return: 无返回值，更新data_helper.region_markets_orders_dict {regoin_id_1:[{order_1},...], region_id_2:[{},...], ...}
+    :return: 无返回值，更新data_helper.region_markets_orders_dict {region_id_1:[{order_1},...], region_id_2:[{},...], ...}
     """
-    data_helper.region_markets_orders_dict = dict()
+    data_helper.region_markets_orders_dict = dict()  # 清空旧数据，旧数据将由GC回收
     if region == 'All':
         region_list = data_helper.region_id_dict.keys()
     elif region == 'Empire regions':
         region_list = data_helper.empire_region_id_list
-    if len(data_helper.region_markets_orders_dict) > 0:
-        data_helper.region_markets_orders_dict = dict()
+    if len(data_helper.region_markets_orders_dict) > 0:  # 冗余代码: 上面已清空，此条件永远为False
+        data_helper.region_markets_orders_dict = dict()  # 永远不会执行
     get_all_orders_task = multithread_functions.MyGetTask(region_list)
-    threads = [multithread_functions.MyGetOrdersOfAllRegionsThread(get_all_orders_task) for i in range(thread_num)]
+    threads = [
+        multithread_functions.MyGetOrdersOfAllRegionsThread(get_all_orders_task)
+        for _ in range(thread_num)
+    ]
     for t in threads:
         t.start()
     for t in threads:
